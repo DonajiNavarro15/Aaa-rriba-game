@@ -1,0 +1,48 @@
+/* Controles para jugar sin micrófono */
+.sim-controls {
+  position: absolute;
+  right: 16px;
+  bottom: 12px;
+  z-index: 6;
+  display: flex;
+  gap: 8px;
+}
+
+.sim-controls__btn {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  height: 46px;
+  padding: 0 16px;
+  border: 3px solid var(--ink);
+  border-radius: var(--radius-sm);
+  box-shadow: 0 4px 0 var(--space-deep);
+  color: var(--text);
+  font-family: var(--font-display);
+  font-size: 17px;
+  font-weight: 600;
+  cursor: pointer;
+  touch-action: none;
+}
+
+.sim-controls__btn--normal {
+  background: var(--grad-blue);
+}
+
+.sim-controls__btn--loud {
+  background: linear-gradient(180deg, var(--coral-light), var(--coral-dark));
+}
+
+.sim-controls__btn.is-pressed {
+  transform: translateY(3px);
+  box-shadow: 0 1px 0 var(--space-deep);
+}
+
+.sim-note {
+  position: absolute;
+  left: 16px;
+  bottom: 18px;
+  font-size: 13px;
+  font-weight: 800;
+  color: var(--text-faint);
+}

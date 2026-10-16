@@ -1,0 +1,65 @@
+/* Paleta, tipografía y medidas compartidas. El juego tiene un solo tema (espacio oscuro). */
+:root {
+  color-scheme: dark;
+
+  /* Espacio */
+  --space-deep: #0b1030;
+  --space: #141b33;
+  --space-glow-1: #1b2547;
+  --space-glow-2: #18213f;
+
+  /* Superficies */
+  --surface: #2e3f86;
+  --surface-dark: #222f68;
+  --surface-line: #5168c4;
+  --surface-line-soft: #3a4e9e;
+  --surface-muted: #3a4878;
+
+  /* Tinta y texto */
+  --ink: #1e2a5e;
+  --text: #ffffff;
+  --text-soft: #dce5fa;
+  --text-muted: #aebbe6;
+  --text-faint: #8c9bd0;
+
+  /* Acentos */
+  --coral-light: #ff9a7e;
+  --coral: #ee5e40;
+  --coral-dark: #e5533a;
+  --gold-light: #ffe08a;
+  --gold: #f6c453;
+  --gold-dark: #f2b53a;
+  --blue-light: #8fb6ff;
+  --blue: #3d74d6;
+  --purple-light: #b9a2f0;
+  --purple: #7457c2;
+  --mint: #4ade80;
+  --teal: #3fb6a8;
+  --green: #3fa66a;
+  --off: #4a5578;
+
+  /* Degradados reutilizables */
+  --grad-coral: linear-gradient(180deg, var(--coral-light), var(--coral));
+  --grad-gold: linear-gradient(180deg, var(--gold-light), var(--gold-dark));
+  --grad-blue: linear-gradient(180deg, var(--blue-light), var(--blue));
+  --grad-purple: linear-gradient(180deg, var(--purple-light), var(--purple));
+  --grad-white: linear-gradient(180deg, #ffffff, #d6e0f8);
+  --grad-surface: linear-gradient(180deg, var(--surface), var(--surface-dark));
+
+  /* Tipografía */
+  --font-display: 'Fredoka', 'Nunito', system-ui, sans-serif;
+  --font-body: 'Nunito', system-ui, sans-serif;
+
+  /* Forma */
+  --radius-sm: 14px;
+  --radius-md: 20px;
+  --radius-lg: 28px;
+  --radius-pill: 999px;
+  --shadow-drop: 0 8px 0 var(--space-deep);
+  --shadow-ring: 0 0 0 5px rgba(11, 16, 48, 0.6);
+
+  /* Escenario */
+  --stage-width: 960px;
+  --stage-height: 600px;
+  --hud-height: 64px;
+}

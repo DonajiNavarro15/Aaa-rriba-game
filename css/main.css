@@ -1,0 +1,16 @@
+/* Orden de capas: variables → base → componentes → animaciones */
+@import url('tokens.css');
+@import url('base.css');
+@import url('components/buttons.css');
+@import url('components/chips.css');
+@import url('components/panel.css');
+@import url('components/hud.css');
+@import url('components/form.css');
+@import url('components/meters.css');
+@import url('components/question.css');
+@import url('components/rule-tile.css');
+@import url('components/feedback.css');
+@import url('components/bonus.css');
+@import url('components/ranking.css');
+@import url('components/sim-controls.css');
+@import url('animations.css');

@@ -1,0 +1,202 @@
+/* Todas las animaciones del juego en un solo lugar */
+@keyframes enter {
+  from {
+    opacity: 0;
+    transform: translateY(24px) scale(0.96);
+  }
+}
+
+@keyframes bob {
+  50% {
+    transform: translateY(-8px);
+  }
+}
+
+@keyframes twinkle {
+  0%,
+  100% {
+    opacity: 0.35;
+    transform: scale(0.8);
+  }
+  50% {
+    opacity: 1;
+    transform: scale(1.15);
+  }
+}
+
+@keyframes blink {
+  to {
+    opacity: 0.35;
+  }
+}
+
+@keyframes pulse-win {
+  40% {
+    transform: scale(1.18);
+  }
+}
+
+@keyframes shake {
+  20% {
+    transform: translateX(-8px);
+  }
+  40% {
+    transform: translateX(8px);
+  }
+  60% {
+    transform: translateX(-5px);
+  }
+  80% {
+    transform: translateX(5px);
+  }
+}
+
+@keyframes pop-in {
+  from {
+    opacity: 0;
+    transform: translateX(-50%) scale(0.5);
+  }
+}
+
+@keyframes float-up {
+  0% {
+    opacity: 0;
+    transform: translateY(10px) scale(0.6);
+  }
+  20% {
+    opacity: 1;
+    transform: translateY(-10px) scale(1.15);
+  }
+  100% {
+    opacity: 0;
+    transform: translateY(-90px);
+  }
+}
+
+@keyframes burst {
+  0% {
+    opacity: 0;
+    transform: scale(0.2) rotate(-20deg);
+  }
+  60% {
+    opacity: 1;
+    transform: scale(1.15) rotate(6deg);
+  }
+}
+
+@keyframes heartbeat {
+  14% {
+    transform: scale(1.07);
+  }
+  28% {
+    transform: scale(1);
+  }
+  42% {
+    transform: scale(1.05);
+  }
+  70% {
+    transform: scale(1);
+  }
+}
+
+@keyframes equalizer {
+  0%,
+  100% {
+    height: 6px;
+  }
+  50% {
+    height: 18px;
+  }
+}
+
+@keyframes fade-in {
+  from {
+    opacity: 0;
+  }
+}
+
+.anim-enter {
+  animation: enter 0.45s cubic-bezier(0.2, 1.4, 0.4, 1) both;
+}
+
+.anim-bob {
+  animation: bob 2.4s ease-in-out infinite;
+}
+
+.anim-shake {
+  animation: shake 0.5s;
+}
+
+.anim-win {
+  animation: pulse-win 0.6s ease-out 2;
+}
+
+.sky__sparkle {
+  animation: twinkle 2.6s ease-in-out infinite;
+}
+
+.hoop__light {
+  animation: blink 1.2s steps(2, end) infinite;
+}
+
+.hoop__light--alt {
+  animation-delay: 0.6s;
+}
+
+.toast {
+  animation: pop-in 0.45s cubic-bezier(0.2, 1.6, 0.4, 1) both;
+}
+
+.points-pop {
+  animation: float-up 1.3s ease-out forwards;
+}
+
+.burst {
+  animation: burst 0.6s cubic-bezier(0.2, 1.6, 0.4, 1) both;
+}
+
+.overlay {
+  animation: fade-in 0.25s both;
+}
+
+.level-card {
+  animation: enter 0.5s cubic-bezier(0.2, 1.6, 0.4, 1) both;
+}
+
+.word-card--warning {
+  animation: heartbeat 0.8s ease-in-out infinite;
+}
+
+.word-card--panic {
+  animation-duration: 0.5s;
+}
+
+.word-card--success {
+  animation: pulse-win 0.5s;
+}
+
+.word-card--missed {
+  animation: shake 0.5s;
+}
+
+.listening__bar {
+  animation: equalizer 0.8s ease-in-out infinite;
+}
+
+.listening__bar:nth-child(2) {
+  animation-delay: 0.15s;
+}
+
+.listening__bar:nth-child(3) {
+  animation-delay: 0.3s;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+  }
+}

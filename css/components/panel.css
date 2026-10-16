@@ -1,0 +1,79 @@
+/* Panel de diálogo azul espacio con encabezado de ícono + título */
+.panel {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 14px;
+  padding: 28px 40px 30px;
+  border: 3px solid var(--surface-line);
+  border-radius: var(--radius-lg);
+  background: var(--grad-surface);
+  box-shadow: var(--shadow-drop), var(--shadow-ring);
+}
+
+.panel--left {
+  align-items: flex-start;
+  text-align: left;
+}
+
+.panel__header {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 12px;
+  width: 100%;
+  padding-bottom: 14px;
+  border-bottom: 2px solid rgba(255, 255, 255, 0.12);
+}
+
+.panel--left .panel__header {
+  justify-content: flex-start;
+}
+
+.panel__icon {
+  width: 52px;
+  height: 52px;
+  flex: none;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border: 3px solid var(--ink);
+  border-radius: 16px;
+  background: var(--grad-coral);
+  box-shadow: 0 4px 0 var(--space-deep);
+}
+
+.panel__icon--gold {
+  background: var(--grad-gold);
+}
+
+.panel__icon--blue {
+  background: var(--grad-blue);
+}
+
+.panel__icon--purple {
+  background: var(--grad-purple);
+}
+
+.panel__title {
+  font-family: var(--font-display);
+  font-size: 30px;
+  font-weight: 600;
+  color: var(--text);
+  white-space: nowrap;
+}
+
+/* Tarjeta de credencial con el avatar */
+.badge-card {
+  width: 170px;
+  flex: none;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 10px;
+  border: 4px solid var(--ink);
+  border-radius: 22px;
+  background: linear-gradient(180deg, #5b8fea, #3d63c4);
+}

@@ -1,0 +1,169 @@
+/* Barra superior: simple (pantallas de menú) y de juego (jugador · progreso · puntos) */
+.topbar,
+.hud {
+  position: absolute;
+  inset: 0 0 auto 0;
+  height: var(--hud-height);
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 0 16px;
+  background: linear-gradient(180deg, #24326e, #1a2452);
+  border-bottom: 3px solid var(--space-deep);
+  box-shadow: inset 0 -2px 0 var(--surface-line-soft);
+  z-index: 3;
+}
+
+.hud__player,
+.score {
+  display: flex;
+  align-items: center;
+  height: 48px;
+  border: 2px solid var(--surface-line-soft);
+  border-radius: var(--radius-pill);
+  background: var(--space);
+}
+
+.hud__player {
+  gap: 10px;
+  padding: 0 16px 0 4px;
+}
+
+.hud__avatar {
+  width: 40px;
+  height: 40px;
+}
+
+.hud__names {
+  display: flex;
+  flex-direction: column;
+  line-height: 1.05;
+  text-align: left;
+}
+
+.hud__name {
+  font-family: var(--font-display);
+  font-size: 18px;
+  font-weight: 600;
+}
+
+.hud__role,
+.score__label {
+  font-size: 11px;
+  font-weight: 800;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--text-faint);
+}
+
+.hud__center {
+  position: absolute;
+  left: 50%;
+  top: 8px;
+  transform: translateX(-50%);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 6px;
+}
+
+.hud__label {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-family: var(--font-display);
+  font-size: 15px;
+  font-weight: 600;
+  white-space: nowrap;
+}
+
+.hud__level {
+  display: flex;
+  align-items: center;
+  height: 20px;
+  padding: 0 8px;
+  border-radius: var(--radius-pill);
+  background: var(--grad-purple);
+  font-size: 12px;
+}
+
+.progress {
+  display: flex;
+  gap: 5px;
+}
+
+.progress__step {
+  width: 40px;
+  height: 12px;
+  border: 2px solid var(--surface-line-soft);
+  border-radius: 6px;
+  background: var(--space);
+  transition: background 0.3s;
+}
+
+.progress__step--ok {
+  border-color: var(--space-deep);
+  background: var(--grad-gold);
+}
+
+.progress__step--miss {
+  border-color: var(--space-deep);
+  background: var(--off);
+}
+
+.progress__step--current {
+  border-color: #9ec5ff;
+  background: #ffffff;
+}
+
+.hud__bonus {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  height: 44px;
+  margin-top: 2px;
+  padding: 0 6px 0 16px;
+  border: 3px solid var(--space-deep);
+  border-radius: var(--radius-pill);
+  background: var(--grad-purple);
+  font-family: var(--font-display);
+  font-size: 19px;
+  font-weight: 600;
+  letter-spacing: 0.05em;
+  text-transform: uppercase;
+}
+
+.hud__multiplier {
+  display: flex;
+  align-items: center;
+  height: 32px;
+  padding: 0 10px;
+  border: 2px solid var(--space-deep);
+  border-radius: var(--radius-pill);
+  background: var(--grad-gold);
+  color: var(--ink);
+}
+
+.score {
+  gap: 8px;
+  padding: 0 16px 0 5px;
+}
+
+.score__icon {
+  width: 36px;
+  height: 36px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border: 2px solid var(--space-deep);
+  border-radius: 50%;
+  background: var(--grad-gold);
+}
+
+.score__value {
+  font-family: var(--font-display);
+  font-size: 26px;
+  font-weight: 600;
+  line-height: 1;
+  color: var(--gold-light);
+}

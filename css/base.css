@@ -1,0 +1,200 @@
+*,
+*::before,
+*::after {
+  box-sizing: border-box;
+}
+
+html,
+body {
+  height: 100%;
+  margin: 0;
+}
+
+body {
+  background: var(--space-deep);
+  color: var(--text);
+  font-family: var(--font-body);
+  overflow: hidden;
+}
+
+[hidden] {
+  display: none !important;
+}
+
+button {
+  font: inherit;
+}
+
+:focus-visible {
+  outline: 4px solid var(--gold);
+  outline-offset: 3px;
+}
+
+/* El escenario mide 960×600 y Stage.js lo escala para que quepa en la ventana */
+.viewport {
+  height: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 16px max(16px, env(safe-area-inset-right)) 16px max(16px, env(safe-area-inset-left));
+}
+
+.viewport__frame {
+  position: relative;
+  flex: none;
+}
+
+.stage {
+  position: absolute;
+  inset: 0 auto auto 0;
+  width: var(--stage-width);
+  height: var(--stage-height);
+  overflow: hidden;
+  border-radius: 18px;
+  background: var(--space);
+  box-shadow: 0 0 0 3px var(--ink), 0 20px 60px rgba(0, 0, 0, 0.5);
+  transform-origin: 0 0;
+  user-select: none;
+  -webkit-user-select: none;
+}
+
+.stage__background,
+.stage__screen {
+  position: absolute;
+  inset: 0;
+}
+
+/* Fondo: círculos suaves, estrellas y destellos */
+.sky__glow {
+  position: absolute;
+  border-radius: 50%;
+}
+
+.sky__star {
+  position: absolute;
+  border-radius: 50%;
+  background: #ffffff;
+}
+
+.sky__sparkle {
+  position: absolute;
+  color: var(--gold);
+}
+
+/* Capa de contenido debajo de la barra superior */
+.layer {
+  position: absolute;
+  inset: var(--hud-height) 0 0 0;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 16px;
+  text-align: center;
+}
+
+.layer--full {
+  inset: 0;
+}
+
+.layer--top {
+  justify-content: flex-start;
+}
+
+/* Ilustraciones posicionadas en el escenario */
+.art {
+  position: absolute;
+  display: block;
+  pointer-events: none;
+}
+
+.art img,
+.art svg {
+  display: block;
+  width: 100%;
+  height: 100%;
+}
+
+.balloon {
+  position: absolute;
+  will-change: transform;
+}
+
+.balloon__body,
+.balloon img,
+.meter__balloon img {
+  display: block;
+  width: 100%;
+  height: 100%;
+}
+
+/* Texto */
+.title {
+  margin: 0;
+  font-family: var(--font-display);
+  font-size: 38px;
+  font-weight: 600;
+  line-height: 1.1;
+  color: var(--text);
+  text-wrap: balance;
+}
+
+.text {
+  margin: 0;
+  font-size: 19px;
+  line-height: 1.45;
+  color: var(--text-soft);
+}
+
+.text-small {
+  margin: 0;
+  font-size: 15px;
+  line-height: 1.4;
+  color: var(--text-muted);
+}
+
+.text-strong {
+  color: var(--text);
+}
+
+.text-gold {
+  color: var(--gold);
+}
+
+.logo {
+  margin: 0;
+  font-family: var(--font-display);
+  font-size: 96px;
+  font-weight: 600;
+  line-height: 1;
+}
+
+.logo__a {
+  color: #ff8a6b;
+}
+
+.logo__b {
+  color: var(--gold);
+}
+
+/* Utilidades de acomodo */
+.row {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 18px;
+}
+
+.row--start {
+  justify-content: flex-start;
+}
+
+.stack {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.grow {
+  flex: 1;
+}

@@ -1,0 +1,7 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="300" height="200" viewBox="0 0 360 240" role="img" aria-label="Planeta con anillos">
+<defs><clipPath id="p2"><circle cx="180" cy="120" r="100"></circle></clipPath></defs>
+<ellipse cx="180" cy="128" rx="170" ry="34" fill="none" stroke="#F6C453" stroke-width="12" transform="rotate(-14 180 128)"></ellipse>
+<circle cx="180" cy="120" r="100" fill="#F29A4B"></circle>
+<g clip-path="url(#p2)"><path d="M60 80c60 18 180 18 240 0v22c-60 18-180 18-240 0z" fill="#E07A2F"></path><path d="M60 150c60 18 180 18 240 0v16c-60 18-180 18-240 0z" fill="#E07A2F"></path><circle cx="140" cy="80" r="70" fill="#FFFFFF" opacity="0.12"></circle></g>
+<path d="M14 152c30 30 300 -6 332 -84" fill="none" stroke="#F6C453" stroke-width="12" stroke-linecap="round" transform="rotate(-2 180 128)"></path>
+</svg>

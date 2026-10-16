@@ -1,0 +1,57 @@
+.chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 7px;
+  height: 40px;
+  padding: 0 14px;
+  border: 2px solid var(--surface-line-soft);
+  border-radius: var(--radius-pill);
+  background: var(--space);
+  color: var(--text);
+  font-family: var(--font-display);
+  font-size: 16px;
+  font-weight: 600;
+  white-space: nowrap;
+}
+
+.chip--gold {
+  border-color: var(--space-deep);
+  background: var(--grad-gold);
+  color: var(--ink);
+}
+
+.chip--small {
+  height: 30px;
+  font-size: 13px;
+}
+
+.chip__icon {
+  width: 26px;
+  height: 26px;
+  margin-left: -8px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 50%;
+  background: var(--coral);
+}
+
+/* Punto verde de «micrófono activo» */
+.status-dot {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+  background: var(--mint);
+}
+
+.mic-status {
+  position: absolute;
+  right: 18px;
+  bottom: 14px;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 13px;
+  font-weight: 700;
+  color: var(--text-faint);
+}

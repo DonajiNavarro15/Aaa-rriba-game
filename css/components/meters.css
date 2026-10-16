@@ -1,0 +1,176 @@
+/* Medidor grande (prueba de comunicación) */
+.meter {
+  width: 640px;
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  margin-top: 50px;
+}
+
+.meter__track {
+  position: relative;
+  height: 44px;
+  border: 3px solid var(--surface-line);
+  border-radius: 22px;
+  background: var(--space-deep);
+}
+
+.meter__danger {
+  position: absolute;
+  inset: 3px 3px 3px auto;
+  width: 18%;
+  border-left: 3px solid #f26b4f;
+  border-radius: 0 16px 16px 0;
+  background: #5a2a3e;
+}
+
+.meter__fill {
+  position: absolute;
+  inset: 3px auto 3px 3px;
+  border-radius: 16px;
+  background: linear-gradient(90deg, var(--teal), #8ed081 50%, var(--gold));
+}
+
+.meter__fill--hot {
+  background: linear-gradient(90deg, var(--gold), #ff8a6b 45%, var(--coral-dark));
+}
+
+.meter__balloon {
+  position: absolute;
+  top: -40px;
+  width: 41px;
+  height: 61px;
+}
+
+.meter__pop {
+  position: absolute;
+  top: -86px;
+  left: calc(100% - 84px);
+  width: 128px;
+  height: 128px;
+}
+
+.meter__zones {
+  display: flex;
+  font-family: var(--font-display);
+  font-size: 14px;
+  font-weight: 600;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+}
+
+.meter__zones span {
+  text-align: center;
+}
+
+.meter__zone--quiet {
+  width: 20%;
+  color: #7c87a8;
+}
+
+.meter__zone--rise {
+  width: 62%;
+  color: var(--green);
+}
+
+.meter__zone--danger {
+  width: 18%;
+  color: var(--coral-dark);
+}
+
+/* Estado debajo del medidor grande */
+.status {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  min-height: 52px;
+  text-align: left;
+}
+
+.status__icon {
+  width: 48px;
+  height: 48px;
+  flex: none;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border: 4px solid var(--ink);
+  border-radius: 50%;
+}
+
+.status__icon--quiet {
+  background: var(--grad-white);
+  color: var(--ink);
+}
+
+.status__icon--rise {
+  background: var(--grad-blue);
+  color: var(--text);
+}
+
+.status__icon--danger {
+  background: linear-gradient(180deg, var(--coral-light), var(--coral-dark));
+  color: var(--text);
+}
+
+.status__title {
+  display: block;
+  font-family: var(--font-display);
+  font-size: 24px;
+  font-weight: 600;
+}
+
+/* Medidor compacto del juego (discreto, abajo al centro) */
+.voice-meter {
+  position: absolute;
+  left: 50%;
+  bottom: 16px;
+  transform: translateX(-50%);
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  height: 40px;
+  padding: 0 14px 0 6px;
+  border: 2px solid rgba(255, 255, 255, 0.14);
+  border-radius: var(--radius-pill);
+  background: rgba(8, 12, 34, 0.65);
+}
+
+.voice-meter__mic {
+  width: 28px;
+  height: 28px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 50%;
+  background: var(--coral);
+}
+
+.voice-meter__label {
+  font-size: 13px;
+  font-weight: 800;
+  color: #c9d3ea;
+}
+
+.voice-meter__track {
+  position: relative;
+  width: 200px;
+  height: 10px;
+  border-radius: 5px;
+  background: rgba(255, 255, 255, 0.14);
+}
+
+.voice-meter__danger {
+  position: absolute;
+  inset: 0 0 0 auto;
+  width: 18%;
+  border-radius: 0 5px 5px 0;
+  background: rgba(242, 107, 79, 0.55);
+}
+
+.voice-meter__fill {
+  position: absolute;
+  inset: 0 auto 0 0;
+  border-radius: 5px;
+  background: linear-gradient(90deg, var(--teal), var(--gold));
+}

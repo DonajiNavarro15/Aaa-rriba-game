@@ -1,0 +1,7 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="480" height="230" viewBox="0 0 480 230" role="img" aria-label="Base lunar">
+<ellipse cx="240" cy="200" rx="250" ry="140" fill="#A7B0C2"></ellipse>
+<ellipse cx="120" cy="150" rx="34" ry="12" fill="#8C96AB"></ellipse><ellipse cx="340" cy="120" rx="22" ry="8" fill="#8C96AB"></ellipse><ellipse cx="400" cy="170" rx="16" ry="6" fill="#8C96AB"></ellipse><ellipse cx="60" cy="200" rx="18" ry="7" fill="#8C96AB"></ellipse>
+<rect x="262" y="96" width="96" height="10" rx="5" fill="#4A5160"></rect>
+<path d="M272 96h12M296 96h12M320 96h12M344 96h10" stroke="#F6C453" stroke-width="10"></path>
+<path d="M276 106l-8 20M344 106l8 20" stroke="#4A5160" stroke-width="4" stroke-linecap="round"></path>
+</svg>

@@ -1,0 +1,11 @@
+{
+  "name": "aaa-rriba",
+  "version": "0.1.0",
+  "private": true,
+  "description": "Juego de voz para niños de 3.º de primaria (front-end).",
+  "type": "module",
+  "scripts": {
+    "start": "npx --yes serve -l 5500 .",
+    "format": "npx --yes prettier --write ."
+  }
+}
