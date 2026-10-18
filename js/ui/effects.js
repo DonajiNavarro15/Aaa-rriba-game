@@ -54,7 +54,7 @@ export function toast(container, { tone, icon, text, durationMs = 1600 }) {
   setTimeout(() => element.remove(), durationMs);
 }
 
-/** Explosión «¡PUM!» con pedazos del globo cayendo. */
+/** Explosión "¡PUM!" con pedazos del globo cayendo. */
 export function balloonPop(container, x, y) {
   spawn(container, 'burst', { left: `${x - 40}px`, top: `${y - 30}px` }, icons.pop());
   for (let i = 0; i < 8; i++) {

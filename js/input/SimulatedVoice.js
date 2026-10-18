@@ -40,6 +40,13 @@ export class SimulatedVoice {
     this.setPressed(`key-${event.code}:${shout}`, isDown);
   }
 
+  /** Durante la pausa ignora teclado y botones, sin olvidar los botones conectados. */
+  setPaused(paused) {
+    this.active = !paused;
+    this.pressed.clear();
+    this.setPressed('', false);
+  }
+
   /** Conecta los botones en pantalla (atributo data-shout="1" o "2"). */
   bindButtons(buttons) {
     this.buttons = buttons;

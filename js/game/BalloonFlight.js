@@ -10,7 +10,7 @@ export const FLIGHT_EVENT = Object.freeze({
 
 /**
  * Física del globo, sin DOM: recibe el nivel de voz y calcula la posición.
- * - Voz en la zona «sube» → el globo sube (más fuerte, más rápido).
+ * - Voz en la zona "sube" → el globo sube (más fuerte, más rápido).
  * - Silencio → baja.
  * - En peligro demasiado tiempo → revienta.
  * La altura está limitada entre el aro de arriba y el de abajo para que el niño

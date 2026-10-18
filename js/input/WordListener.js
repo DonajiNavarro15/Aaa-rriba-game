@@ -14,10 +14,13 @@ export class WordListener {
     this.speechWorks = false;
     this.voicedSeconds = 0;
     this.onHeard = null;
+    this.onWrong = null;
   }
 
-  listen(word, onHeard) {
+  /** `onWrong` (opcional) se llama si el niño termina de decir otra palabra; solo con reconocimiento de voz. */
+  listen(word, onHeard, onWrong = null) {
     this.onHeard = onHeard;
+    this.onWrong = onWrong;
     this.voicedSeconds = 0;
     const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
     if (!this.useSpeech || !SpeechRecognition) return;
@@ -29,7 +32,9 @@ export class WordListener {
       recognition.interimResults = true;
       recognition.onresult = (event) => {
         for (let i = event.resultIndex; i < event.results.length; i++) {
-          if (normalize(event.results[i][0].transcript).includes(normalize(word))) this.heard();
+          const said = normalize(event.results[i][0].transcript).trim();
+          if (said.includes(normalize(word))) this.heard();
+          else if (event.results[i].isFinal && said) this.wrong();
         }
       };
       recognition.onerror = (event) => {
@@ -57,6 +62,7 @@ export class WordListener {
 
   stop() {
     this.onHeard = null;
+    this.onWrong = null;
     if (!this.recognition) return;
     this.recognition.onend = null;
     try {
@@ -70,7 +76,16 @@ export class WordListener {
   heard() {
     const callback = this.onHeard;
     this.onHeard = null;
+    this.onWrong = null;
     callback?.();
+  }
+
+  wrong() {
+    const callback = this.onWrong;
+    if (!callback) return;
+    this.onHeard = null;
+    this.onWrong = null;
+    callback();
   }
 
   safeStart(recognition) {

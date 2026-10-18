@@ -1,5 +1,5 @@
 import { Screen } from '../core/Screen.js';
-import { button, chip, escapeHtml, image, panelHeader, topBar } from '../ui/components.js';
+import { button, earth, escapeHtml, image, panelHeader, topBar } from '../ui/components.js';
 import { icons } from '../ui/icons.js';
 import { confetti } from '../ui/effects.js';
 import { sortRanking } from '../game/RankingRepository.js';
@@ -17,17 +17,20 @@ const MEDALS = {
 
 /** 09 · Tripulación estrella: tabla de posiciones con medallas y la fila del jugador resaltada. */
 export class CrewScreen extends Screen {
-  constructor(app, { highlightId = null } = {}) {
+  /** `afterGame`: viene de terminar una partida; solo entonces se ofrece volver a despegar. */
+  constructor(app, { highlightId = null, afterGame = false } = {}) {
     super(app);
     this.highlightId = highlightId;
+    this.afterGame = afterGame;
   }
 
   render() {
     return `
-      ${topBar({ backLabel: 'Inicio', right: chip('Salón 3.º', { gold: true }), soundOn: this.app.sound.enabled })}
-      ${image('greenPlanet', { x: 40, y: 450, width: 64, height: 64 })}
-      ${image('purplePlanet', { x: 880, y: 470, width: 50, height: 50 })}
-      ${image('ringedPlanet', { x: 800, y: 80, width: 150, height: 100 })}
+      ${topBar({ backLabel: 'Inicio', soundOn: this.app.sound.enabled })}
+      ${image('greenPlanet', { x: 40, y: 450, width: 64, height: 64, className: 'anim-spin' })}
+      ${image('purplePlanet', { x: 880, y: 470, width: 50, height: 50, className: 'anim-spin anim-spin--reverse' })}
+      ${image('ringedPlanet', { x: 800, y: 80, width: 150, height: 100, className: 'anim-sway' })}
+      ${earth({ x: 46, y: 96, size: 80 })}
       <div class="layer layer--top" style="gap:16px">
         <div class="panel anim-enter" style="width:640px;gap:7px;padding:18px 26px 20px">
           ${panelHeader('Tripulación estrella', { tone: 'gold', icon: icons.trophy(30) })}
@@ -36,7 +39,7 @@ export class CrewScreen extends Screen {
         </div>
         <div class="row">
           ${button('Salir', { id: 'exit', variant: 'light', size: 'small' })}
-          ${button('Volver a despegar', { id: 'again', size: 'small' })}
+          ${this.afterGame ? button('Volver a despegar', { id: 'again', size: 'small' }) : ''}
         </div>
       </div>`;
   }

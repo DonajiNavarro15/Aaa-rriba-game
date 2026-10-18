@@ -29,6 +29,7 @@ export const icons = {
     svg(size, '0 0 24 24', `<path d="M12 1Q12 12 23 12Q12 12 12 23Q12 12 1 12Q12 12 12 1Z" fill="${color}"/>`),
 
   back: () => stroke(18, 3, '<path d="M15 5l-7 7 7 7"/>'),
+  pause: () => svg(16, '0 0 24 24', '<rect x="5" y="4" width="5" height="16" rx="1.5"/><rect x="14" y="4" width="5" height="16" rx="1.5"/>', 'fill="currentColor"'),
   check: (size = 24) => stroke(size, 3.4, '<path d="M5 12l5 5 9-10"/>'),
   cross: (size = 18) => stroke(size, 3.4, '<path d="M6 6l12 12M18 6L6 18"/>'),
   arrowUp: () => stroke(24, 3, '<path d="M12 19V5M5 12l7-7 7 7"/>'),
@@ -58,7 +59,7 @@ export const icons = {
       `<circle cx="50" cy="52" r="44" fill="#FFFFFF" stroke="${INK}" stroke-width="5"/><rect x="20" y="32" width="60" height="38" rx="19" fill="${visor}" stroke="${INK}" stroke-width="4"/><ellipse cx="38" cy="44" rx="8" ry="5" fill="#FFFFFF" opacity=".75"/><rect x="44" y="4" width="12" height="9" rx="3" fill="#F26B4F" stroke="${INK}" stroke-width="3"/>${withCrown ? `<path d="M30 -12l8 9 12-14 12 14 8-9v14H30z" fill="#F6C453" stroke="${INK}" stroke-width="3" stroke-linejoin="round"/>` : ''}`
     ),
 
-  /** Explosión «¡PUM!» del globo reventado. */
+  /** Explosión "¡PUM!" del globo reventado. */
   pop: () =>
     `<svg width="100%" height="100%" viewBox="0 0 100 100" aria-hidden="true"><polygon points="50,4 59,30 88,20 69,43 96,58 64,62 67,95 50,72 33,95 36,62 4,58 31,43 12,20 41,30" fill="#F26B4F" stroke="${INK}" stroke-width="3.5" stroke-linejoin="round"/><polygon points="50,20 57,38 76,33 64,48 76,62 57,60 50,80 43,60 24,62 36,48 24,33 43,38" fill="#F6C453"/><text x="50" y="55.5" text-anchor="middle" font-family="Fredoka, sans-serif" font-size="13" font-weight="700" fill="${INK}">¡PUM!</text></svg>`,
 

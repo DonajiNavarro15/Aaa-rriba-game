@@ -72,7 +72,8 @@
   flex-direction: column;
   align-items: center;
   justify-content: center;
-  gap: 10px;
+  gap: 20px;
+  padding: 18px 0 20px;
   border: 4px solid var(--ink);
   border-radius: 22px;
   background: linear-gradient(180deg, #5b8fea, #3d63c4);

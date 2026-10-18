@@ -12,6 +12,9 @@ export class Screen {
     this.app = app;
     this.root = null;
     this.cleanups = [];
+    this.timers = new Set();
+    this.loops = [];
+    this.paused = false;
   }
 
   render() {
@@ -55,9 +58,20 @@ export class Screen {
     });
   }
 
+  /** Temporizador que se congela con `pause()` y sigue donde iba con `resume()`. */
   after(ms, callback) {
-    const timer = setTimeout(callback, ms);
-    this.cleanups.push(() => clearTimeout(timer));
+    const timer = { remaining: ms, callback, id: null, startedAt: 0 };
+    this.timers.add(timer);
+    if (!this.paused) this.startTimer(timer);
+    this.cleanups.push(() => clearTimeout(timer.id));
+  }
+
+  startTimer(timer) {
+    timer.startedAt = performance.now();
+    timer.id = setTimeout(() => {
+      this.timers.delete(timer);
+      timer.callback();
+    }, timer.remaining);
   }
 
   every(ms, callback) {
@@ -68,9 +82,36 @@ export class Screen {
   loop(onFrame) {
     const gameLoop = new GameLoop(onFrame);
     gameLoop.start();
+    this.loops.push(gameLoop);
     this.cleanups.push(() => gameLoop.stop());
     return gameLoop;
   }
+
+  /** Congela la pantalla: temporizadores, bucles y animaciones. */
+  pause() {
+    if (this.paused) return;
+    this.paused = true;
+    this.pausedAt = performance.now();
+    this.timers.forEach((timer) => {
+      clearTimeout(timer.id);
+      timer.remaining -= this.pausedAt - timer.startedAt;
+    });
+    this.loops.forEach((gameLoop) => gameLoop.stop());
+    this.frozenAnimations = this.root.getAnimations({ subtree: true }).filter((animation) => animation.playState === 'running');
+    this.frozenAnimations.forEach((animation) => animation.pause());
+  }
+
+  resume() {
+    if (!this.paused) return;
+    this.paused = false;
+    this.timers.forEach((timer) => this.startTimer(timer));
+    this.loops.forEach((gameLoop) => gameLoop.start());
+    this.frozenAnimations.forEach((animation) => animation.play());
+    this.onResume(performance.now() - this.pausedAt);
+  }
+
+  /** Para pantallas que miden el tiempo por su cuenta: recibe cuánto duró la pausa. */
+  onResume(pausedMs) {}
 
   addCleanup(cleanup) {
     this.cleanups.push(cleanup);

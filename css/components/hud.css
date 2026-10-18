@@ -2,7 +2,6 @@
 .topbar,
 .hud {
   position: absolute;
-  inset: 0 0 auto 0;
   height: var(--hud-height);
   display: flex;
   align-items: center;
@@ -166,4 +165,12 @@
   font-weight: 600;
   line-height: 1;
   color: var(--gold-light);
+}
+
+/* Botón de pausa del HUD */
+.icon-btn--pause {
+  width: 44px;
+  height: 44px;
+  border-color: var(--gold);
+  color: var(--gold);
 }

@@ -23,7 +23,7 @@ export class NameScreen extends Screen {
             <div class="stack grow" style="align-items:flex-start;text-align:left">
               <label class="field-label" for="player-name">Tu nombre</label>
               <input class="field" id="player-name" type="text" maxlength="${MAX_NAME_LENGTH}" placeholder="Escribe tu nombre" value="${escapeHtml(this.app.session.playerName)}">
-              <p class="text-small">Aparecerá en la tripulación estrella si llegas a los planetas.</p>
+              <p class="text-small">Al terminar, aparecerás en la Tripulación estrella según tus puntos.</p>
               <div class="row row--start" style="margin-top:8px">${button('Listo', { id: 'ready', size: 'small' })}</div>
             </div>
           </div>

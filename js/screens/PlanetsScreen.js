@@ -15,7 +15,7 @@ const SPARKLES = [
   [860, 470, '#FF8A6B', 18],
 ];
 
-/** 08 · Llega a los planetas (o «casi llegas» si no dijo ninguna palabra). Guarda el resultado. */
+/** 08 · Llega a los planetas (o "casi llegas" si no dijo ninguna palabra). Guarda el resultado. */
 export class PlanetsScreen extends Screen {
   get session() {
     return this.app.session;
@@ -57,7 +57,7 @@ export class PlanetsScreen extends Screen {
     this.bindMuteButton();
     const saving = this.saveResult();
     this.playArrival();
-    this.onClick('crew', async () => this.app.go(CrewScreen, { highlightId: await saving }));
+    this.onClick('crew', async () => this.app.go(CrewScreen, { highlightId: await saving, afterGame: true }));
   }
 
   /** @returns {Promise<string>} id de la entrada guardada */

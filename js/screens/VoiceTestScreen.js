@@ -24,7 +24,7 @@ export class VoiceTestScreen extends VoiceScreen {
       <div class="layer">
         <div class="panel anim-enter" style="width:780px;gap:12px;padding:24px 40px 26px">
           ${panelHeader('Prueba de comunicación', { tone: 'purple', icon: icons.mic('#FFFFFF', 26) })}
-          <p class="text" style="max-width:560px">Revisa la comunicación con la base: grita <b>«Aaaa»</b> y mira hasta dónde llega la barra.</p>
+          <p class="text" style="max-width:560px">Revisa la comunicación con la base: grita <b>Aaaa</b> y mira hasta dónde llega la barra.</p>
           <div class="meter">
             <div class="meter__track">
               <span class="meter__danger"></span>
@@ -46,7 +46,7 @@ export class VoiceTestScreen extends VoiceScreen {
   onMount() {
     super.onMount();
     this.onClick('back', () => this.app.go(NameScreen));
-    this.onClick('continue', () => this.app.go(HowToPlayScreen, { fromStart: false }));
+    this.onClick('continue', () => this.app.go(HowToPlayScreen));
     this.bindMuteButton();
     this.listen(this.$('#sensitivity'), 'input', (event) => (this.app.voice.sensitivity = Number(event.target.value)));
 

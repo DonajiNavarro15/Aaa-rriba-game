@@ -11,7 +11,7 @@ body {
 }
 
 body {
-  background: var(--space-deep);
+  background: var(--space);
   color: var(--text);
   font-family: var(--font-body);
   overflow: hidden;
@@ -30,13 +30,13 @@ button {
   outline-offset: 3px;
 }
 
-/* El escenario mide 960×600 y Stage.js lo escala para que quepa en la ventana */
+/* Stage.js escala el escenario para que llene la ventana; el área de juego queda centrada */
 .viewport {
   height: 100%;
   display: flex;
   align-items: center;
   justify-content: center;
-  padding: 16px max(16px, env(safe-area-inset-right)) 16px max(16px, env(safe-area-inset-left));
+  padding: env(safe-area-inset-top) env(safe-area-inset-right) env(safe-area-inset-bottom) env(safe-area-inset-left);
 }
 
 .viewport__frame {
@@ -50,18 +50,47 @@ button {
   width: var(--stage-width);
   height: var(--stage-height);
   overflow: hidden;
-  border-radius: 18px;
   background: var(--space);
-  box-shadow: 0 0 0 3px var(--ink), 0 20px 60px rgba(0, 0, 0, 0.5);
   transform-origin: 0 0;
   user-select: none;
   -webkit-user-select: none;
 }
 
-.stage__background,
-.stage__screen {
+.stage__background {
   position: absolute;
   inset: 0;
+}
+
+.stage__screen {
+  position: absolute;
+  left: var(--play-offset-x);
+  top: var(--play-offset-y);
+  width: var(--play-width);
+  height: var(--play-height);
+}
+
+/* Elementos que deben cubrir todo el escenario aunque vivan dentro del área de juego */
+.overlay,
+.topbar,
+.hud {
+  left: calc(-1 * var(--play-offset-x));
+  top: calc(-1 * var(--play-offset-y));
+  width: var(--stage-width);
+}
+
+.overlay {
+  height: var(--stage-height);
+}
+
+/* Suelo lunar: se prolonga hacia abajo para que no quede cortado en ventanas altas */
+.art--ground::after {
+  content: '';
+  position: absolute;
+  top: calc(100% - 1px);
+  left: 0;
+  right: 0;
+  height: var(--stage-height);
+  background: #a7b0c2;
 }
 
 /* Fondo: círculos suaves, estrellas y destellos */

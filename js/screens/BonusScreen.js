@@ -1,7 +1,7 @@
 import { VoiceScreen } from './VoiceScreen.js';
 import { balloon, bonusBadge, gameHud, image, panelHeader, voiceMeter } from '../ui/components.js';
 import { icons } from '../ui/icons.js';
-import { bump, confetti, pointsPopup, toast } from '../ui/effects.js';
+import { bump, confetti, pointsPopup, shake, toast } from '../ui/effects.js';
 import { WordListener } from '../input/WordListener.js';
 import { BONUS } from '../config.js';
 import { PlanetsScreen } from './PlanetsScreen.js';
@@ -9,6 +9,9 @@ import { PlanetsScreen } from './PlanetsScreen.js';
 const BALLOON_START = { x: 60, y: 380 };
 const BALLOON_STEP = { x: 130, y: -20 };
 const POINTS_DELAY_MS = 450;
+const MISS_TOAST_MS = 1500;
+/** Cómo terminó cada palabra. */
+const OUTCOME = Object.freeze({ SAID: 'said', WRONG: 'wrong', TIME_UP: 'time-up' });
 
 /** 07 · Ronda bonus: decir la palabra antes de que se acabe el tiempo. */
 export class BonusScreen extends VoiceScreen {
@@ -23,7 +26,7 @@ export class BonusScreen extends VoiceScreen {
       y: BALLOON_START.y + session.wordsSaid * BALLOON_STEP.y,
     };
     return `
-      ${gameHud({ playerName: session.playerName, points: session.points, center: bonusBadge(), soundOn: this.app.sound.enabled })}
+      ${gameHud({ playerName: session.playerName, points: session.points, center: bonusBadge(), soundOn: this.app.sound.enabled, pausable: true })}
       ${image('ringedPlanet', { x: 640, y: 300, width: 330, height: 220 })}
       ${image('purplePlanet', { x: 860, y: 90, width: 66, height: 66 })}
       ${image('redPlanet', { x: 560, y: 470, width: 44, height: 44 })}
@@ -50,10 +53,20 @@ export class BonusScreen extends VoiceScreen {
     this.finished = false;
 
     this.listener = new WordListener({ useSpeech: this.app.voice.usesMicrophone });
-    this.listener.listen(this.session.currentWord, () => this.finish(true));
+    this.listener.listen(
+      this.session.currentWord,
+      () => !this.paused && this.finish(OUTCOME.SAID),
+      () => !this.paused && this.finish(OUTCOME.WRONG)
+    );
     this.addCleanup(() => this.listener.stop());
 
     this.loop((deltaSeconds, now) => this.update(deltaSeconds, now));
+  }
+
+  /** El reloj de la palabra no corre durante la pausa. */
+  onResume(pausedMs) {
+    this.startedAt += pausedMs;
+    this.lastBeatAt += pausedMs;
   }
 
   update(deltaSeconds, now) {
@@ -66,7 +79,7 @@ export class BonusScreen extends VoiceScreen {
     this.timerFill.style.width = `calc(${(remaining / BONUS.msPerWord) * 100}% - 6px)`;
     this.updateUrgency(remaining, elapsed, now);
 
-    if (remaining <= 0) this.finish(false);
+    if (remaining <= 0) this.finish(OUTCOME.TIME_UP);
     return !this.finished;
   }
 
@@ -90,16 +103,17 @@ export class BonusScreen extends VoiceScreen {
     }
   }
 
-  finish(said) {
+  finish(outcome) {
     if (this.finished) return;
     this.finished = true;
     this.listener.stop();
     this.card.classList.remove('word-card--warning', 'word-card--panic');
 
-    if (said) this.celebrate();
+    if (outcome === OUTCOME.SAID) this.celebrate();
+    else if (outcome === OUTCOME.WRONG) this.wrongWord();
     else this.timeUp();
 
-    this.session.wordResult(said);
+    this.session.wordResult(outcome === OUTCOME.SAID);
     this.after(BONUS.nextWordMs, () => this.app.go(this.session.hasMoreWords ? BonusScreen : PlanetsScreen));
   }
 
@@ -120,9 +134,17 @@ export class BonusScreen extends VoiceScreen {
     );
   }
 
+  /** Dijo otra palabra: se avisa y sale la siguiente. */
+  wrongWord() {
+    this.app.sfx.wrong();
+    this.card.classList.add('word-card--missed');
+    shake(this.card);
+    toast(this.root, { tone: 'soft', icon: icons.cross(22), text: 'Palabra incorrecta', durationMs: MISS_TOAST_MS });
+  }
+
   timeUp() {
     this.app.sfx.timeUp();
     this.card.classList.add('word-card--missed');
-    toast(this.root, { tone: 'soft', icon: icons.clock('#FFFFFF'), text: '¡Se acabó el tiempo!', durationMs: 1500 });
+    toast(this.root, { tone: 'soft', icon: icons.clock('#FFFFFF'), text: '¡Se acabó el tiempo!', durationMs: MISS_TOAST_MS });
   }
 }

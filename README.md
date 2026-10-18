@@ -1,11 +1,11 @@
 # Aaa-rriba
 
-Juego de voz para niños de 8 a 9 años (3.º de primaria). El niño grita «Aaaa» para subir un globo
+Juego de voz para niños de 8 a 9 años (3.º de primaria). El niño grita "Aaaa" para subir un globo
 con un astronauta, cruza el aro con la respuesta correcta y, en la ronda bonus, dice palabras a
 tiempo para llegar a los planetas.
 
 Por ahora es solo el **front-end** (HTML, CSS y JavaScript sin frameworks). La tabla
-«Tripulación estrella» se guarda en el navegador; más adelante se conectará al back-end.
+"Tripulación estrella" se guarda en el navegador; más adelante se conectará al back-end.
 
 ## Cómo correrlo en VS Code
 
@@ -20,10 +20,13 @@ lo permite en `localhost` o `https`.
 
 Alternativa con Node: `npm start` (usa `npx serve`) y abre la dirección que aparece.
 
+Alternativa con Python: `python3 serve.py` y abre `http://localhost:5500`. Usa este en lugar de
+`python3 -m http.server`, que deja al navegador guardar versiones viejas de los archivos.
+
 ### Sin micrófono
 
 Si el navegador no da el micrófono, el juego aparece en modo simulado: mantén la **barra
-espaciadora** (o el botón «Mantén: Aaaa») para gritar y la **F** (o «¡AAAA! fuerte») para el grito
+espaciadora** (o el botón "Mantén: Aaaa") para gritar y la **F** (o "¡AAAA! fuerte") para el grito
 demasiado fuerte.
 
 ## Estructura

@@ -1,20 +1,14 @@
 import { Screen } from '../core/Screen.js';
 import { button, image, panelHeader, ruleTile, topBar } from '../ui/components.js';
 import { icons } from '../ui/icons.js';
-import { StartScreen } from './StartScreen.js';
 import { VoiceTestScreen } from './VoiceTestScreen.js';
 import { QuestionScreen } from './QuestionScreen.js';
 
-/** 04 · Tu misión. Desde el inicio solo explica; en el flujo de juego lleva a la primera pregunta. */
+/** 04 · Tu misión: recordatorio de las reglas justo antes de la primera pregunta. */
 export class HowToPlayScreen extends Screen {
-  constructor(app, { fromStart }) {
-    super(app);
-    this.fromStart = fromStart;
-  }
-
   render() {
     return `
-      ${topBar({ backLabel: this.fromStart ? 'Inicio' : 'Volver', soundOn: this.app.sound.enabled })}
+      ${topBar({ backLabel: 'Volver', soundOn: this.app.sound.enabled })}
       ${image('greenPlanet', { x: 40, y: 450, width: 64, height: 64 })}
       ${image('redPlanet', { x: 870, y: 100, width: 50, height: 50 })}
       <div class="layer" style="gap:22px">
@@ -26,15 +20,14 @@ export class HowToPlayScreen extends Screen {
             ${ruleTile(3, icons.rule('boom'), 'Grita muy fuerte', '¡El globo se revienta!')}
           </div>
           <p class="text" style="font-size:20px">Cruza el aro con la <b class="text-gold">respuesta correcta</b> y llega hasta los planetas.</p>
-          ${button(this.fromStart ? 'Entendido' : '¡Despegar!', { id: 'continue' })}
+          ${button('¡Despegar!', { id: 'continue' })}
         </div>
       </div>`;
   }
 
   onMount() {
-    this.onClick('back', () => this.app.go(this.fromStart ? StartScreen : VoiceTestScreen));
+    this.onClick('back', () => this.app.go(VoiceTestScreen));
     this.onClick('continue', () => {
-      if (this.fromStart) return this.app.go(StartScreen);
       this.app.sfx.launch();
       this.app.session.reset();
       this.app.go(QuestionScreen);
