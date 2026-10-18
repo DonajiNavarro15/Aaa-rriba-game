@@ -40,7 +40,7 @@ export class Sfx {
     this.engine.tone(NOTE.C7, { delay: 0.42, duration: 0.35, wave: 'sine', volume: 0.08 });
   }
 
-  /** Incorrecto: un «boing» suave que baja, sin sonar a regaño. */
+  /** Incorrecto: un "boing" suave que baja, sin sonar a regaño. */
   wrong() {
     this.engine.tone(NOTE.G4, { duration: 0.22, wave: 'sine', slideTo: NOTE.E4 });
     this.engine.tone(NOTE.Eb4, { delay: 0.2, duration: 0.38, wave: 'sine', slideTo: NOTE.Bb3 });
@@ -80,7 +80,7 @@ export class Sfx {
     this.engine.tone(NOTE.C4, { duration: 1.6, volume: 0.15 });
   }
 
-  /** Latido «lub-dub» para cuando se acaba el tiempo del bonus. */
+  /** Latido "lub-dub" para cuando se acaba el tiempo del bonus. */
   heartbeat() {
     this.engine.tone(70, { duration: 0.16, wave: 'sine', volume: 0.7, slideTo: 45 });
     this.engine.tone(64, { delay: 0.17, duration: 0.2, wave: 'sine', volume: 0.55, slideTo: 40 });

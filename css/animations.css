@@ -199,4 +199,44 @@
     animation-iteration-count: 1 !important;
     transition-duration: 0.01ms !important;
   }
+
+  /* Los planetas siguen girando: es un movimiento lento y de fondo */
+  .anim-spin {
+    animation-duration: 30s !important;
+    animation-iteration-count: infinite !important;
+  }
+
+  .anim-sway {
+    animation-duration: 7s !important;
+    animation-iteration-count: infinite !important;
+  }
+}
+
+/* Planetas que giran lento: inicio, tutorial y Tripulación estrella */
+@keyframes spin {
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+@keyframes sway {
+  0%,
+  100% {
+    transform: rotate(-6deg) translateY(0);
+  }
+  50% {
+    transform: rotate(6deg) translateY(-6px);
+  }
+}
+
+.anim-spin {
+  animation: spin 30s linear infinite;
+}
+
+.anim-spin--reverse {
+  animation-direction: reverse;
+}
+
+.anim-sway {
+  animation: sway 7s ease-in-out infinite;
 }

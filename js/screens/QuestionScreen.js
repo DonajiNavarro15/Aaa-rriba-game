@@ -28,10 +28,10 @@ export class QuestionScreen extends VoiceScreen {
       results: session.results,
     });
     return `
-      ${image('moon', { x: -140, y: 430, width: 480, height: 230 })}
+      ${image('moon', { x: -140, y: 430, width: 480, height: 230 , className: 'art--ground' })}
       ${image('greenPlanet', { x: 470, y: 440, width: 50, height: 50 })}
       ${image('purplePlanet', { x: 40, y: 110, width: 40, height: 40 })}
-      ${gameHud({ playerName: session.playerName, points: session.points, center: progress, soundOn: this.app.sound.enabled })}
+      ${gameHud({ playerName: session.playerName, points: session.points, center: progress, soundOn: this.app.sound.enabled, pausable: true })}
       <div class="question-plate anim-enter" id="question">${question.text}<span class="question-plate__answer" id="answer">?</span></div>
       ${hoopColumn(question.options)}
       ${balloon({ x: 0, y: 0 })}
@@ -150,7 +150,7 @@ export class QuestionScreen extends VoiceScreen {
 
   encourage(answer) {
     this.app.sfx.wrong();
-    toast(this.root, { tone: 'soft', icon: icons.star(24, '#F6C453'), text: `Era ${answer}. ¡La próxima sale!`, durationMs: TOAST_MS });
+    toast(this.root, { tone: 'soft', icon: icons.star(24, '#F6C453'), text: `Era ${answer}. ¡Sigue intentando!`, durationMs: TOAST_MS });
   }
 
   goToNextQuestion() {

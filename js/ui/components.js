@@ -64,18 +64,19 @@ export function chip(text, { gold = false, small = false, icon = '', id = '' } =
   return `<span class="${classes}" ${id ? `id="${id}"` : ''}>${icon}${text}</span>`;
 }
 
-/** HUD de juego: jugador a la izquierda, `center` en medio y marcador a la derecha. */
-export function gameHud({ playerName, points, center, soundOn }) {
+/** HUD de juego: jugador a la izquierda, `center` en medio y marcador a la derecha. `pausable` agrega el botón de pausa. */
+export function gameHud({ playerName, points, center, soundOn, pausable = false }) {
   return `<header class="hud">
     <div class="hud__player"><span class="hud__avatar">${icons.helmet(PLAYER_VISOR, 40)}</span><span class="hud__names"><span class="hud__name">${escapeHtml(playerName || 'Astronauta')}</span><span class="hud__role">Tripulante</span></span></div>
     ${center}
     <span class="grow"></span>
     <div class="score"><span class="score__icon">${icons.star(20, '#1E2A5E')}</span><span class="score__value" id="points">${points}</span><span class="score__label">puntos</span></div>
     ${muteButton(soundOn)}
+    ${pausable ? `<button type="button" class="icon-btn icon-btn--pause" id="pause" aria-label="Pausar el juego">${icons.pause()}</button>` : ''}
   </header>`;
 }
 
-/** Centro del HUD durante las preguntas: «Pregunta n de 6», nivel y barra de progreso. */
+/** Centro del HUD durante las preguntas: "Pregunta n de 6", nivel y barra de progreso. */
 export function questionProgress({ number, total, level, results }) {
   const steps = Array.from({ length: total }, (_, i) => {
     const state = results[i] === true ? 'ok' : results[i] === false ? 'miss' : i === number - 1 ? 'current' : '';
@@ -86,6 +87,25 @@ export function questionProgress({ number, total, level, results }) {
 
 export function bonusBadge() {
   return `<div class="hud__center"><span class="hud__bonus">${icons.star(18, '#FFFFFF')}Ronda bonus<span class="hud__multiplier">×2</span></span></div>`;
+}
+
+/** Menú de pausa: seguir jugando o abandonar (con confirmación para evitar salidas por accidente). */
+export function pauseMenu() {
+  return `<div class="overlay pause-menu" id="pause-menu">
+    <div class="panel pause-menu__panel" id="pause-main">
+      <div class="panel__header"><span class="panel__icon panel__icon--blue">${icons.pause()}</span><span class="panel__title">Juego en pausa</span></div>
+      ${button('Continuar', { id: 'resume' })}
+      ${button('Abandonar partida', { id: 'quit', variant: 'light', size: 'small' })}
+    </div>
+    <div class="panel pause-menu__panel" id="pause-confirm" hidden>
+      <span class="panel__title">¿Seguro que quieres salir?</span>
+      <p class="text">Se perderán los puntos de esta partida.</p>
+      <div class="row">
+        ${button('Sí, salir', { id: 'quit-confirm', variant: 'light', size: 'small' })}
+        ${button('No, seguir jugando', { id: 'quit-cancel', size: 'small' })}
+      </div>
+    </div>
+  </div>`;
 }
 
 export function voiceMeter() {
@@ -140,6 +160,37 @@ export function hoopColumn(options) {
         `<div class="hoop" id="hoop-${i}" style="left:${HOOPS.x}px;top:${HOOPS.tops[i]}px">${hoopArt()}</div><span class="answer-plate" id="plate-${i}" style="left:${HOOPS.plateX}px;top:${HOOPS.tops[i] + HOOPS.plateOffsetY}px">${value}</span>`
     )
     .join('');
+}
+
+let earthId = 0;
+
+/**
+ * Planeta Tierra dibujado en línea (sin archivo de imagen).
+ * Los continentes se desplazan dentro del círculo para que parezca girar.
+ * Con posición lo coloca en el escenario; sin posición devuelve solo el dibujo.
+ */
+export function earth({ x, y, size } = {}) {
+  const id = `earth-${earthId++}`;
+  const drift = (seconds) =>
+    `<animateTransform attributeName="transform" type="translate" from="0 0" to="-100 0" dur="${seconds}s" repeatCount="indefinite"/>`;
+  const art = `<svg width="100%" height="100%" viewBox="0 0 100 100" role="img" aria-label="Planeta Tierra">
+    <defs><clipPath id="${id}-clip"><circle cx="50" cy="50" r="46"/></clipPath></defs>
+    <circle cx="50" cy="50" r="46" fill="#3D86E0" stroke="#1E2A5E" stroke-width="4"/>
+    <g clip-path="url(#${id}-clip)">
+      <g>${drift(16)}
+        <g id="${id}-land" fill="#5CBF6B">
+          <path d="M8 22c8-6 20-4 24 2s0 12-6 14-4 10-10 12-14-4-12-12-2-12 4-16z"/>
+          <path d="M22 56c6-2 12 2 12 10s-4 16-8 20-8-2-8-10-2-18 4-20z"/>
+          <path d="M52 18c10-4 26-2 32 6s-2 14-10 14-6 8-14 8-12-8-10-16-4-10 2-12z"/>
+          <path d="M60 58c6-4 16-2 18 6s-4 14-12 14-10-6-10-12 0-6 4-8z"/>
+        </g>
+        <use href="#${id}-land" x="100"/>
+      </g>
+      <circle cx="78" cy="78" r="48" fill="#000000" opacity="0.18"/>
+    </g>
+  </svg>`;
+  if (x === undefined) return art;
+  return `<div class="art" style="left:${x}px;top:${y}px;width:${size}px;height:${size}px">${art}</div>`;
 }
 
 export function ruleTile(number, art, caption, detail) {

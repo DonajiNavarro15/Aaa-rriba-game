@@ -58,8 +58,12 @@
   --shadow-drop: 0 8px 0 var(--space-deep);
   --shadow-ring: 0 0 0 5px rgba(11, 16, 48, 0.6);
 
-  /* Escenario */
+  /* Escenario: Stage.js ajusta su tamaño a la ventana; el área de juego mide siempre 960×600 */
   --stage-width: 960px;
   --stage-height: 600px;
+  --play-width: 960px;
+  --play-height: 600px;
+  --play-offset-x: 0px;
+  --play-offset-y: 0px;
   --hud-height: 64px;
 }

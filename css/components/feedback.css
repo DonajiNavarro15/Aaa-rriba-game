@@ -98,7 +98,6 @@
 /* Cambio de nivel */
 .overlay {
   position: absolute;
-  inset: 0;
   z-index: 8;
   display: flex;
   align-items: center;
@@ -165,4 +164,19 @@
   display: flex;
   align-items: flex-end;
   gap: 6px;
+}
+
+/* Menú de pausa: queda encima de todo, incluido el HUD */
+.pause-menu {
+  z-index: 10;
+  background: rgba(11, 16, 48, 0.75);
+}
+
+.pause-menu__panel {
+  min-width: 420px;
+  gap: 20px;
+}
+
+.pause-menu__panel .panel__icon {
+  color: var(--text);
 }
