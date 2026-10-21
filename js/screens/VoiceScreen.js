@@ -46,6 +46,7 @@ export class VoiceScreen extends Screen {
   openPauseMenu() {
     if (this.paused) return;
     this.pause();
+    this.app.narrator.stop();
     this.app.simulatedVoice.setPaused(true);
     this.root.insertAdjacentHTML('beforeend', pauseMenu());
     this.onClick('resume', () => this.closePauseMenu());

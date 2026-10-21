@@ -1,0 +1,1 @@
+Grabaciones de la narración. Se crean con grabar.html (ver README).

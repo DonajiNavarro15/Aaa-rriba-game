@@ -3,7 +3,7 @@ import { button, chip, escapeHtml, image, panelHeader, topBar } from '../ui/comp
 import { icons } from '../ui/icons.js';
 import { PLAYER_VISOR } from '../config.js';
 import { StartScreen } from './StartScreen.js';
-import { VoiceTestScreen } from './VoiceTestScreen.js';
+import { HowToPlayScreen } from './HowToPlayScreen.js';
 
 const MAX_NAME_LENGTH = 12;
 const FOCUS_DELAY_MS = 300;
@@ -12,7 +12,7 @@ const FOCUS_DELAY_MS = 300;
 export class NameScreen extends Screen {
   render() {
     return `
-      ${topBar({ right: chip('Paso 1 de 2'), soundOn: this.app.sound.enabled })}
+      ${topBar({ right: chip('Paso 1 de 3'), soundOn: this.app.sound.enabled })}
       ${image('redPlanet', { x: 70, y: 430, width: 70, height: 70 })}
       ${image('purplePlanet', { x: 840, y: 110, width: 56, height: 56 })}
       <div class="layer" style="padding-top:20px">
@@ -65,6 +65,6 @@ export class NameScreen extends Screen {
   submit() {
     if (!this.name) return;
     this.app.session.playerName = this.name;
-    this.app.go(VoiceTestScreen);
+    this.app.go(HowToPlayScreen);
   }
 }

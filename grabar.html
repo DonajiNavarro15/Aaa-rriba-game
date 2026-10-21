@@ -1,0 +1,158 @@
+<!doctype html>
+<html lang="es">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Grabar narración · Aaa-rriba</title>
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Fredoka:wght@500;600;700&family=Nunito:wght@600;700;800;900&display=swap">
+  <link rel="stylesheet" href="css/tokens.css">
+  <style>
+    body {
+      margin: 0;
+      padding: 32px 24px 64px;
+      background: var(--space);
+      color: var(--text);
+      font-family: var(--font-body);
+    }
+
+    main {
+      max-width: 980px;
+      margin: 0 auto;
+    }
+
+    h1,
+    h2 {
+      font-family: var(--font-display);
+      font-weight: 600;
+    }
+
+    h2 {
+      margin: 32px 0 10px;
+      color: var(--gold);
+    }
+
+    .steps {
+      color: var(--text-soft);
+      line-height: 1.5;
+    }
+
+    ul {
+      margin: 0;
+      padding: 0;
+      list-style: none;
+    }
+
+    .clip {
+      display: grid;
+      grid-template-columns: 1fr 190px auto auto;
+      gap: 12px;
+      align-items: center;
+      padding: 12px 16px;
+      margin-bottom: 8px;
+      border: 2px solid var(--surface-line-soft);
+      border-radius: var(--radius-sm);
+      background: var(--surface-dark);
+    }
+
+    .clip__text {
+      font-size: 17px;
+      line-height: 1.4;
+    }
+
+    .clip__name {
+      display: block;
+      font-size: 12px;
+      font-weight: 800;
+      letter-spacing: 0.06em;
+      color: var(--text-faint);
+    }
+
+    .clip__state {
+      font-weight: 800;
+      font-size: 14px;
+      color: var(--text-muted);
+    }
+
+    .clip__state[data-state='done'] {
+      color: var(--mint);
+    }
+
+    .clip__state[data-state='missing'] {
+      color: var(--coral-light);
+    }
+
+    .tool-btn {
+      height: 42px;
+      padding: 0 18px;
+      border: 3px solid var(--ink);
+      border-radius: var(--radius-sm);
+      background: var(--grad-white);
+      color: var(--ink);
+      font-family: var(--font-display);
+      font-size: 17px;
+      font-weight: 600;
+      cursor: pointer;
+    }
+
+    .tool-btn--record {
+      background: var(--grad-coral);
+      color: var(--text);
+    }
+
+    .tool-btn.is-recording {
+      background: var(--coral-dark);
+      box-shadow: 0 0 0 4px rgba(238, 94, 64, 0.45);
+    }
+
+.clip__meter {
+      grid-column: 1 / -1;
+      height: 8px;
+      border-radius: 4px;
+      background: rgba(255, 255, 255, 0.12);
+      overflow: hidden;
+    }
+
+    .clip__meter-fill {
+      display: block;
+      width: 0;
+      height: 100%;
+      background: linear-gradient(90deg, var(--teal), var(--gold));
+    }
+
+    .mic-status {
+      color: var(--text-muted);
+      font-weight: 800;
+    }
+
+    #folder-status {
+      margin-left: 12px;
+      color: var(--gold-light);
+      font-weight: 800;
+    }
+
+    @media (max-width: 640px) {
+      .clip {
+        grid-template-columns: 1fr 1fr;
+      }
+
+      .clip__text {
+        grid-column: 1 / -1;
+      }
+    }
+  </style>
+  <script type="module" src="js/tools/recorder.js"></script>
+</head>
+<body>
+  <main>
+    <h1>Grabar la narración</h1>
+    <ol class="steps">
+      <li>Abre esta página en Chrome desde el servidor local (por ejemplo <b>http://localhost:5500/grabar.html</b>).</li>
+      <li>Da clic en <b>Elegir carpeta</b> y elige la carpeta <b>assets/audio</b> del juego. Así cada grabación se guarda sola.</li>
+      <li>En cada frase: <b>Grabar</b>, lee el texto con calma y <b>Detener</b>. Con <b>Escuchar</b> la revisas; si no te gusta, vuelve a grabarla.</li>
+    </ol>
+    <p><button type="button" class="tool-btn" id="pick-folder">Elegir carpeta</button><span id="folder-status"></span></p>
+    <p id="mic-status" class="mic-status"></p>
+    <div id="list"></div>
+  </main>
+</body>
+</html>
