@@ -31,6 +31,33 @@
   background: rgba(11, 16, 48, 0.35);
 }
 
+/* Botón redondo para volver a escuchar la narración del paso */
+.tuto-scene {
+  position: relative;
+}
+
+.tuto-listen {
+  position: absolute;
+  top: 10px;
+  right: 10px;
+  width: 46px;
+  height: 46px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border: 3px solid var(--ink);
+  border-radius: 50%;
+  background: var(--grad-gold);
+  box-shadow: 0 4px 0 var(--space-deep);
+  color: var(--ink);
+  cursor: pointer;
+}
+
+.tuto-listen:active {
+  transform: translateY(3px);
+  box-shadow: 0 1px 0 var(--space-deep);
+}
+
 .tuto-text {
   max-width: 600px;
   min-height: 56px;

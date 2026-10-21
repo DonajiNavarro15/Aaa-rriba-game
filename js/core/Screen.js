@@ -123,6 +123,7 @@ export class Screen {
       'mute',
       () => {
         this.app.sound.toggle();
+        if (!this.app.sound.enabled) this.app.narrator.stop();
         this.$('#mute').innerHTML = icons.speaker(this.app.sound.enabled);
       },
       { sound: false }

@@ -1,6 +1,7 @@
 import { Stage } from './Stage.js';
 import { SoundEngine } from '../audio/SoundEngine.js';
 import { Sfx } from '../audio/Sfx.js';
+import { Narrator } from '../audio/Narrator.js';
 import { VoiceInput } from '../input/VoiceInput.js';
 import { SimulatedVoice } from '../input/SimulatedVoice.js';
 import { GameSession } from '../game/GameSession.js';
@@ -20,6 +21,7 @@ export class App {
     const engine = new SoundEngine();
     this.sound = engine;
     this.sfx = new Sfx(engine);
+    this.narrator = new Narrator(engine);
     this.simulatedVoice = new SimulatedVoice();
     this.voice = new VoiceInput(engine, this.simulatedVoice);
     this.session = new GameSession();
@@ -34,8 +36,9 @@ export class App {
     this.go(FirstScreen);
   }
 
-  /** Desmonta la pantalla actual (limpiando sus timers y bucles) y monta la nueva. */
+  /** Desmonta la pantalla actual (limpiando sus timers, bucles y narración) y monta la nueva. */
   go(ScreenClass, ...args) {
+    this.narrator.stop();
     this.currentScreen?.unmount();
     this.screenRoot.replaceChildren();
     this.currentScreen = new ScreenClass(this, ...args);

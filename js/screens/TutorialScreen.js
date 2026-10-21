@@ -5,22 +5,22 @@ import { BONUS } from '../config.js';
 import { StartScreen } from './StartScreen.js';
 import { NameScreen } from './NameScreen.js';
 
-/** Cada paso del tutorial: título, dibujo de la escena y explicación corta. */
+/** Cada paso del tutorial: título, dibujo de la escena y explicación corta (su grabación es tutorial-<n>). */
 const STEPS = [
   {
     title: 'Prueba tu voz',
     scene: () => `
       <span class="tuto-mic">${icons.mic('#FFFFFF', 64)}</span>
       <span class="tuto-shout anim-bob">¡Aaaa!</span>`,
-    text: 'Antes de despegar, grita <b class="text-gold">Aaaa</b> para revisar que el micrófono te escuche.',
+    text: 'Guarda silencio y luego grita <b class="text-gold">¡Aaaa-rriba!</b> Después practicamos a volar. <b class="text-gold">¡Ahí no pierdes!</b>',
   },
   {
     title: 'Vuela con tu voz',
     scene: () => `
-      <div class="tuto-rule"><span class="anim-bob">${icons.rule('up')}</span><b>Sostén el grito</b>Sube</div>
-      <div class="tuto-rule">${icons.rule('down')}<b>Deja de gritar</b>Baja</div>
+      <div class="tuto-rule"><span class="anim-bob">${icons.rule('up')}</span><b>Grita sin parar</b>Sube</div>
+      <div class="tuto-rule">${icons.rule('down')}<b>Guarda silencio</b>Baja</div>
       <div class="tuto-rule">${icons.rule('boom')}<b>¡Muy fuerte!</b>Se revienta</div>`,
-    text: 'Tu voz mueve el globo. ¡Cuidado! Si gritas <b class="text-gold">demasiado fuerte</b>, el globo se revienta.',
+    text: 'Gritas: <b class="text-gold">sube</b>. Guardas silencio: <b class="text-gold">baja</b>. ¡Muy fuerte: <b class="text-gold">se revienta</b>!',
   },
   {
     title: 'Elige la respuesta',
@@ -38,17 +38,17 @@ const STEPS = [
             .join('')}
         </div>
       </div>`,
-    text: 'En tu pantalla aparecerá una operación matemática. Lleva el globo al aro que tenga la <b class="text-gold">respuesta correcta</b>.',
+    text: '6 × 7 = 42. Lleva el globo al aro del <b class="text-gold">42</b>.',
   },
   {
-    title: 'Ronda bonus',
+    title: 'Di la palabra',
     scene: () => `
       <div class="tuto-word">
         <span class="tuto-word__label">${icons.mic('#FFFFFF', 18)}¡Di la palabra!</span>
         <span class="tuto-word__text">LUNA</span>
       </div>
       <span class="tuto-clock">${icons.clock()}</span>`,
-    text: `Di en voz alta la palabra que aparece <b class="text-gold">antes de que se acabe el tiempo</b>. ¡Cada palabra vale ${BONUS.pointsPerWord} puntos!`,
+    text: `Di la palabra <b class="text-gold">rápido</b>, antes de que se acabe el tiempo. ¡Cada una vale ${BONUS.pointsPerWord} puntos!`,
   },
   {
     title: 'Llega a los planetas',
@@ -57,11 +57,11 @@ const STEPS = [
       <span class="tuto-path tuto-path--short"></span>
       <span class="tuto-planet anim-sway">${image('ringedPlanet')}<span class="tuto-flag">${image('flag')}</span></span>
       <span class="tuto-earth">${earth()}</span>`,
-    text: 'Junta puntos, llega a los planetas y gana tu lugar en la <b class="text-gold">Tripulación estrella</b>.',
+    text: 'Gana puntos, llega a los planetas y sal en la <b class="text-gold">tabla de campeones</b>.',
   },
 ];
 
-/** Tutorial paso a paso desde el inicio: explica todo lo que pasa en una partida. */
+/** Tutorial paso a paso desde el inicio: explica todo lo que pasa en una partida y lo lee en voz alta. */
 export class TutorialScreen extends Screen {
   constructor(app) {
     super(app);
@@ -96,6 +96,12 @@ export class TutorialScreen extends Screen {
     this.onClick('prev', () => this.show(this.step - 1));
     this.onClick('home', () => this.app.go(StartScreen));
     this.onClick('next', () => (this.isLastStep ? this.play() : this.show(this.step + 1)));
+    // El botón de escuchar se vuelve a dibujar con cada paso: se escucha desde el contenedor.
+    this.listen(this.$('#tuto-step'), 'click', (event) => {
+      if (!event.target.closest('#listen')) return;
+      this.app.sound.unlock();
+      this.app.narrator.say(`tutorial-${this.step + 1}`);
+    });
     this.listen(this.$('#dots'), 'click', (event) => {
       const dot = event.target.closest('[data-step]');
       if (!dot) return;
@@ -115,9 +121,10 @@ export class TutorialScreen extends Screen {
     this.$('#tuto-step').innerHTML = `
       <div class="tuto-step anim-enter">
         ${panelHeader(`<span class="tuto-count">${this.step + 1}/${STEPS.length}</span>${title}`, { tone: 'gold' })}
-        <div class="tuto-scene">${scene()}</div>
+        <div class="tuto-scene">${scene()}<button type="button" class="tuto-listen" id="listen" aria-label="Escuchar otra vez">${icons.speaker(true)}</button></div>
         <p class="text tuto-text">${text}</p>
       </div>`;
+    this.app.narrator.say(`tutorial-${this.step + 1}`);
     this.$('#prev').style.visibility = this.step === 0 ? 'hidden' : 'visible';
     this.$('#home').hidden = !this.isLastStep;
     this.$('#next').lastChild.textContent = this.isLastStep ? 'Ir a jugar' : 'Siguiente';

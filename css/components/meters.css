@@ -120,6 +120,46 @@
   font-weight: 600;
 }
 
+/* Avance de la medición de voz (silencio y palabra) */
+.calib-progress {
+  position: relative;
+  width: 320px;
+  height: 10px;
+  overflow: hidden;
+  border-radius: 5px;
+  background: rgba(255, 255, 255, 0.14);
+}
+
+.calib-progress__fill {
+  position: absolute;
+  inset: 0 auto 0 0;
+  width: 0;
+  border-radius: 5px;
+  background: linear-gradient(90deg, var(--teal), var(--gold));
+}
+
+/* Nivel de voz medido: 5 puntos */
+.voice-level {
+  display: flex;
+  gap: 8px;
+}
+
+.voice-level__dot {
+  width: 34px;
+  height: 12px;
+  border-radius: 6px;
+  background: rgba(255, 255, 255, 0.14);
+}
+
+.voice-level__dot--on {
+  background: linear-gradient(90deg, var(--teal), var(--gold));
+}
+
+.calib-note {
+  max-width: 560px;
+  color: var(--gold);
+}
+
 /* Medidor compacto del juego (discreto, abajo al centro) */
 .voice-meter {
   position: absolute;
