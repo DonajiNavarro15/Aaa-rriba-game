@@ -2,7 +2,7 @@ import { Screen } from '../core/Screen.js';
 import { balloon, bonusBadge, button, gameHud, image, panelHeader } from '../ui/components.js';
 import { icons } from '../ui/icons.js';
 import { confetti } from '../ui/effects.js';
-import { BONUS, PLAYER_VISOR } from '../config.js';
+import { PLAYER_VISOR } from '../config.js';
 import { CrewScreen } from './CrewScreen.js';
 
 const ARRIVAL_MS = 1400;
@@ -33,7 +33,7 @@ export class PlanetsScreen extends Screen {
         `<span class="art anim-bob" style="left:${x}px;top:${y}px;width:${size}px;height:${size}px;animation-delay:${i * 0.3}s">${icons.sparkle(size, color)}</span>`
     ).join('');
     const message = this.reachedPlanets
-      ? `Dijiste ${said} de ${BONUS.words.length} palabras a tiempo y ganaste ${said * BONUS.pointsPerWord} puntos más. Ya eres parte de la tripulación estrella.`
+      ? 'Gracias por ayudarnos en esta importante misión, definitivamente ya eres parte de la tripulación estrella.<br>Nos vemos en otra misión, astronauta'
       : 'Esta vez no dijiste las palabras a tiempo, pero tus puntos sí cuentan para la tripulación.';
 
     return `
@@ -45,7 +45,7 @@ export class PlanetsScreen extends Screen {
       ${balloon({ id: 'arriving-balloon', x: 600, y: 186, bobbing: false })}
       ${this.reachedPlanets ? image('flag', { x: 722, y: 272, width: 56, height: 76, id: 'flag' }) : ''}
       <div class="panel panel--left anim-enter" style="position:absolute;left:40px;top:150px;width:400px;gap:12px;padding:28px 30px">
-        ${panelHeader(this.reachedPlanets ? '¡Llegaste!' : '¡Casi llegas!', { tone: 'gold' })}
+        ${this.reachedPlanets ? '' : panelHeader('¡Casi llegas!', { tone: 'gold' })}
         <div class="row row--start" style="gap:4px">${[0, 1, 2].map((i) => icons.rating(44, i < said)).join('')}</div>
         <p class="title" style="font-size:32px">${this.reachedPlanets ? '¡Llegaste a los planetas!' : 'Te quedaste cerquita'}</p>
         <p class="text-small">${message}</p>
@@ -68,6 +68,7 @@ export class PlanetsScreen extends Screen {
       seconds: this.session.elapsedSeconds,
       visor: PLAYER_VISOR,
     });
+    this.session.lastEntryId = saved.id;
     return saved.id;
   }
 

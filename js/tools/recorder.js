@@ -20,10 +20,8 @@ const SILENT_PEAK = 0.003; // si lo más fuerte de la grabación no llega a esto
 class RecordingError extends Error {}
 
 const GROUPS = [
-  { prefix: 'tutorial', title: 'Tutorial (¿Cómo se juega?)' },
-  { prefix: 'mision', title: 'Tu misión' },
+  { prefix: 'demo', title: 'Video de ¿Cómo se juega?' },
   { prefix: 'voz', title: 'Prueba de comunicación' },
-  { prefix: 'practica', title: 'Práctica' },
 ];
 
 const takes = new Map(); // clave → última grabación (Blob wav)

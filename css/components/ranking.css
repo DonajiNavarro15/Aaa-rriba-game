@@ -11,6 +11,31 @@
   text-align: left;
 }
 
+.ranking-rows {
+  width: 100%;
+  min-height: 268px; /* 5 filas: la tabla no brinca en la última hoja */
+  gap: 7px;
+}
+
+.ranking-pager {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 14px;
+}
+
+.ranking-pager .icon-btn:disabled {
+  opacity: 0.35;
+  cursor: default;
+}
+
+.ranking-pager__label {
+  font-size: 15px;
+  font-weight: 800;
+  color: #c9d3ea;
+  font-variant-numeric: tabular-nums;
+}
+
 .ranking-row {
   display: flex;
   align-items: center;

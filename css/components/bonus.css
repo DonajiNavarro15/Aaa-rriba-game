@@ -80,19 +80,3 @@
 .timer__fill--low {
   background: linear-gradient(180deg, var(--coral-light), var(--coral-dark));
 }
-
-.listening {
-  display: flex;
-  align-items: center;
-  gap: 8px;
-  font-size: 15px;
-  font-weight: 800;
-  color: var(--text-muted);
-}
-
-.listening__bar {
-  display: inline-block;
-  width: 5px;
-  border-radius: 3px;
-  background: #ff8a6b;
-}

@@ -1,15 +1,27 @@
-import { createRound } from './QuestionBank.js';
+import { createRound, fetchRound } from './QuestionBank.js';
 import { BONUS, ROUND } from '../config.js';
 
 /** Estado de una partida: jugador, preguntas, aciertos, puntos y tiempo. */
 export class GameSession {
   constructor() {
     this.playerName = '';
+    this.lastEntryId = null; // su última entrada en el ranking, para abrir la tabla en su hoja
     this.reset();
   }
 
-  reset() {
-    this.questions = createRound();
+  forgetPlayer() {
+    this.playerName = '';
+    this.lastEntryId = null;
+  }
+
+  /** Empieza una partida con preguntas y palabras del servidor (o locales si no responde). */
+  async startRound() {
+    this.reset(await fetchRound());
+  }
+
+  reset({ questions, words } = createRound()) {
+    this.questions = questions;
+    this.words = words;
     this.questionIndex = 0;
     this.results = [];
     this.points = 0;
@@ -56,11 +68,11 @@ export class GameSession {
   }
 
   get currentWord() {
-    return BONUS.words[this.wordIndex];
+    return this.words[this.wordIndex];
   }
 
   get hasMoreWords() {
-    return this.wordIndex < BONUS.words.length;
+    return this.wordIndex < this.words.length;
   }
 
   wordResult(said) {

@@ -5,7 +5,7 @@ import { Narrator } from '../audio/Narrator.js';
 import { VoiceInput } from '../input/VoiceInput.js';
 import { SimulatedVoice } from '../input/SimulatedVoice.js';
 import { GameSession } from '../game/GameSession.js';
-import { LocalRankingRepository } from '../game/RankingRepository.js';
+import { ApiRankingRepository, LocalRankingRepository } from '../game/RankingRepository.js';
 import { renderSky } from '../ui/background.js';
 
 /**
@@ -25,7 +25,7 @@ export class App {
     this.simulatedVoice = new SimulatedVoice();
     this.voice = new VoiceInput(engine, this.simulatedVoice);
     this.session = new GameSession();
-    this.ranking = new LocalRankingRepository();
+    this.ranking = new ApiRankingRepository(new LocalRankingRepository());
 
     this.currentScreen = null;
   }

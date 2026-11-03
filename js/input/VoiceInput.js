@@ -1,7 +1,8 @@
-import { VOICE } from '../config.js';
+import { AAA, VOICE } from '../config.js';
 import { SHOUT } from './SimulatedVoice.js';
+import { AaaDetector } from './AaaDetector.js';
 
-const FFT_SIZE = 1024;
+const FFT_SIZE = 2048; // ventana de ~43 ms: alcanza para medir el tono de la voz
 const WOBBLE_MS = 180;
 const WOBBLE_AMOUNT = 6;
 
@@ -10,6 +11,8 @@ const WOBBLE_AMOUNT = 6;
  * Contra el ruido exterior: el navegador suprime ruido, un filtro deja pasar solo las
  * frecuencias de la voz y la barra empieza por encima del ruido del cuarto (medido en
  * la prueba de comunicación y seguido durante el juego).
+ * Además reconoce el "Aaaa" (AaaDetector): `aaaLevel` solo sube con una "a" sostenida,
+ * así el globo no se mueve cuando alguien habla. `level` sigue cualquier voz (ronda bonus).
  * Si no hay micrófono, usa la voz simulada (teclado o botones).
  */
 export class VoiceInput {
@@ -24,7 +27,11 @@ export class VoiceInput {
     this.ambientDecibels = null; // ruido del cuarto; null hasta medir la voz
     this.ambientMarginDecibels = 0; // distancia entre el ruido y el piso de la barra
     this.decibels = -Infinity; // lectura cruda del último cuadro
-    this.level = 0;
+    this.level = 0; // cualquier voz
+    this.aaaLevel = 0; // solo el "Aaaa"
+    this.detector = null;
+    this.stream = null; // el micrófono, para grabar muestras de diagnóstico
+    this.features = null; // rasgos del último cuadro (tono, si parece "a"…)
   }
 
   get usesMicrophone() {
@@ -42,10 +49,13 @@ export class VoiceInput {
       const stream = await navigator.mediaDevices.getUserMedia({
         audio: { echoCancellation: true, noiseSuppression: VOICE.browserNoiseSuppression, autoGainControl: false },
       });
+      this.stream = stream;
       const context = this.soundEngine.unlock();
       this.analyser = context.createAnalyser();
       this.analyser.fftSize = FFT_SIZE;
       this.samples = new Float32Array(this.analyser.fftSize);
+      this.spectrum = new Float32Array(this.analyser.frequencyBinCount);
+      this.detector = new AaaDetector(context.sampleRate, this.analyser.frequencyBinCount);
       context
         .createMediaStreamSource(stream)
         .connect(voiceFilter(context, 'highpass', VOICE.lowCutHz))
@@ -60,18 +70,27 @@ export class VoiceInput {
   }
 
   /** Guarda la medición de la prueba de comunicación (ver VoiceCalibration). */
-  applyCalibration({ floorDecibels, decibelRange, noiseDecibels }) {
+  applyCalibration({ floorDecibels, decibelRange, noiseDecibels, ownPitch }) {
     this.floorDecibels = floorDecibels;
     this.decibelRange = decibelRange;
     this.ambientDecibels = noiseDecibels;
     this.ambientMarginDecibels = floorDecibels - noiseDecibels;
+    this.detector?.setOwnPitch(ownPitch);
   }
 
-  /** Nivel suavizado: sube rápido y baja despacio para que el globo no tiemble. */
+  /**
+   * Niveles suavizados: suben rápido y bajan despacio para que el globo no tiemble.
+   * Devuelve `level` (cualquier voz) y deja en `aaaLevel` el que solo cuenta el "Aaaa".
+   */
   read(deltaSeconds) {
-    const target = Math.max(this.microphoneLevel(deltaSeconds), this.simulatedLevel());
-    const speed = target > this.level ? VOICE.attack : VOICE.release;
-    this.level += (target - this.level) * Math.min(1, speed * deltaSeconds);
+    const microphone = this.microphoneLevel(deltaSeconds);
+    const simulated = this.simulatedLevel();
+    // En el juego no siempre se grita: un "Aaaa" suave cuenta si supera el ruido del cuarto, y sube el
+    // globo aunque no llegue a la zona "sube" de la barra. Más fuerte, sube más rápido.
+    const aboveNoise = this.ambientDecibels === null ? microphone > 0 : this.decibels >= this.ambientDecibels + AAA.minAboveNoiseDecibels;
+    const aaa = this.detector?.update(deltaSeconds, this.features, aboveNoise) ? Math.max(microphone, AAA.softAaaLevel) : 0;
+    this.level = smooth(this.level, Math.max(microphone, simulated), deltaSeconds);
+    this.aaaLevel = smooth(this.aaaLevel, Math.max(aaa, simulated), deltaSeconds);
     return this.level;
   }
 
@@ -80,6 +99,8 @@ export class VoiceInput {
     this.analyser.getFloatTimeDomainData(this.samples);
     const meanSquare = this.samples.reduce((sum, sample) => sum + sample * sample, 0) / this.samples.length;
     this.decibels = 20 * Math.log10(Math.sqrt(meanSquare) + 1e-8);
+    this.analyser.getFloatFrequencyData(this.spectrum);
+    this.features = this.detector.analyze(this.samples, this.spectrum);
     this.trackAmbient(deltaSeconds);
     const floor = Math.max(this.floorDecibels, (this.ambientDecibels ?? -Infinity) + this.ambientMarginDecibels);
     return clamp(((this.decibels - floor) / this.decibelRange) * 100, 0, 100);
@@ -108,6 +129,11 @@ export class VoiceInput {
         return 0;
     }
   }
+}
+
+function smooth(current, target, deltaSeconds) {
+  const speed = target > current ? VOICE.attack : VOICE.release;
+  return current + (target - current) * Math.min(1, speed * deltaSeconds);
 }
 
 function voiceFilter(context, type, frequency) {

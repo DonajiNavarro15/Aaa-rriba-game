@@ -29,6 +29,7 @@ export const icons = {
     svg(size, '0 0 24 24', `<path d="M12 1Q12 12 23 12Q12 12 12 23Q12 12 1 12Q12 12 12 1Z" fill="${color}"/>`),
 
   back: () => stroke(18, 3, '<path d="M15 5l-7 7 7 7"/>'),
+  forward: () => stroke(18, 3, '<path d="M9 5l7 7-7 7"/>'),
   pause: () => svg(16, '0 0 24 24', '<rect x="5" y="4" width="5" height="16" rx="1.5"/><rect x="14" y="4" width="5" height="16" rx="1.5"/>', 'fill="currentColor"'),
   check: (size = 24) => stroke(size, 3.4, '<path d="M5 12l5 5 9-10"/>'),
   cross: (size = 18) => stroke(size, 3.4, '<path d="M6 6l12 12M18 6L6 18"/>'),
@@ -63,25 +64,6 @@ export const icons = {
   pop: () =>
     `<svg width="100%" height="100%" viewBox="0 0 100 100" aria-hidden="true"><polygon points="50,4 59,30 88,20 69,43 96,58 64,62 67,95 50,72 33,95 36,62 4,58 31,43 12,20 41,30" fill="#F26B4F" stroke="${INK}" stroke-width="3.5" stroke-linejoin="round"/><polygon points="50,20 57,38 76,33 64,48 76,62 57,60 50,80 43,60 24,62 36,48 24,33 43,38" fill="#F6C453"/><text x="50" y="55.5" text-anchor="middle" font-family="Fredoka, sans-serif" font-size="13" font-weight="700" fill="${INK}">¡PUM!</text></svg>`,
 
-  /** Ilustraciones de las reglas: globo que sube, que baja, o explosión. */
-  rule: (kind) => {
-    if (kind === 'boom') {
-      return svg(
-        96,
-        '0 0 100 100',
-        `<polygon points="50,6 59,32 88,24 68,45 94,60 63,63 65,94 50,71 35,94 37,63 6,60 32,45 12,24 41,32" fill="#F26B4F" stroke="${INK}" stroke-width="3.5" stroke-linejoin="round"/><polygon points="50,28 55,42 69,39 60,50 69,59 55,59 50,74 45,59 31,59 40,50 31,39 45,42" fill="#F6C453"/>`
-      );
-    }
-    const arrow =
-      kind === 'up'
-        ? '<path d="M84 76V26M72 38l12-12 12 12" fill="none" stroke="#8ED081" stroke-width="8" stroke-linecap="round" stroke-linejoin="round"/>'
-        : '<path d="M84 26v50M72 64l12 12 12-12" fill="none" stroke="#9EC5FF" stroke-width="8" stroke-linecap="round" stroke-linejoin="round"/>';
-    return svg(
-      96,
-      '0 0 100 100',
-      `<path d="M40 10C24 10 15 23 15 37c0 14 14 24 20 31h10c6-7 20-17 20-31 0-14-9-27-25-27z" fill="#F26B4F" stroke="${INK}" stroke-width="3"/><path d="M40 9c-7 3-10 16-10 28 0 12 3 23 6 31h8c3-8 6-19 6-31 0-12-3-25-10-28z" fill="#F6C453"/><rect x="32" y="76" width="16" height="14" rx="2" fill="#B9773E" stroke="${INK}" stroke-width="3"/><path d="M35 68l-1 8M45 68l1 8" stroke="#E9D9C4" stroke-width="2"/>${arrow}`
-    );
-  },
 };
 
 function stroke(size, width, body) {

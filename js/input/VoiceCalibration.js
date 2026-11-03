@@ -1,4 +1,5 @@
-import { CALIBRATION, VOICE } from '../config.js';
+import { AAA, CALIBRATION, VOICE } from '../config.js';
+import { typicalPitch } from './AaaDetector.js';
 
 /** Fase de la medición de voz. */
 export const CALIBRATION_PHASE = Object.freeze({
@@ -27,6 +28,9 @@ export class VoiceCalibration {
     this.samples = [];
     this.voicedSeconds = 0;
     this.quietSeconds = 0;
+    this.aaaFrames = []; // cuadros de su "Aaaa", para guardar su tono
+    this.aaaDecibels = []; // volumen de su "Aaaa": la barra se mide con él, no con toda la palabra
+    this.aaaSeconds = 0;
   }
 
   /** Vuelve a pedir la palabra sin volver a medir el silencio, aceptando una voz más bajita. */
@@ -51,11 +55,11 @@ export class VoiceCalibration {
     return 1;
   }
 
-  /** @returns {string} la fase después de este cuadro */
-  update(deltaSeconds, decibels) {
+  /** `features` son los rasgos del cuadro (AaaDetector), o null sin micrófono. @returns {string} la fase después de este cuadro */
+  update(deltaSeconds, decibels, features = null) {
     this.elapsedMs += deltaSeconds * 1000;
     if (this.phase === CALIBRATION_PHASE.SILENCE) this.listenToSilence(decibels);
-    else if (this.phase === CALIBRATION_PHASE.SPEAK) this.listenToVoice(deltaSeconds, decibels);
+    else if (this.phase === CALIBRATION_PHASE.SPEAK) this.listenToVoice(deltaSeconds, decibels, features);
     return this.phase;
   }
 
@@ -66,11 +70,16 @@ export class VoiceCalibration {
     this.startPhase(CALIBRATION_PHASE.SPEAK);
   }
 
-  listenToVoice(deltaSeconds, decibels) {
+  listenToVoice(deltaSeconds, decibels, features) {
     if (decibels >= this.noiseDecibels + this.voicedOverNoise) {
       this.samples.push(decibels);
       this.voicedSeconds += deltaSeconds;
       this.quietSeconds = 0;
+      if (features?.isAaa) {
+        this.aaaFrames.push(features);
+        this.aaaDecibels.push(decibels);
+        this.aaaSeconds += deltaSeconds;
+      }
     } else {
       this.quietSeconds += deltaSeconds;
     }
@@ -88,9 +97,14 @@ export class VoiceCalibration {
    * sonidos más bajos que la voz del niño (otras personas lejos del micrófono) no mueven el globo.
    * Con una voz bajita (cerca del ruido) el piso se queda justo encima del ruido y la barra se
    * achica, para que su voz siga subiendo el globo sin que el ruido lo mueva.
+   * La voz se mide con su "Aaaa" (lo que mueve el globo en el juego): la palabra completa
+   * ("rriba" y el final que se apaga) suena más bajito, y con ella un "Aaaa" largo reventaría el globo.
    */
   finish() {
-    const voiceDecibels = percentile(this.samples, CALIBRATION.voicePercentile);
+    const heldAaa = this.aaaSeconds >= AAA.pitchMinSeconds;
+    const voiceDecibels = heldAaa
+      ? percentile(this.aaaDecibels, CALIBRATION.aaaPercentile)
+      : percentile(this.samples, CALIBRATION.voicePercentile);
     const fullRange =
       (CALIBRATION.riseBelowVoiceDecibels + CALIBRATION.dangerAboveVoiceDecibels) /
       ((VOICE.dangerThreshold - VOICE.riseThreshold) / 100);
@@ -118,6 +132,8 @@ export class VoiceCalibration {
       decibelRange,
       noiseDecibels: this.noiseDecibels,
       noisy: voiceDecibels - this.noiseDecibels < CALIBRATION.noisyRoomSpanDecibels,
+      // Tono de su "Aaaa" (de "¡Aaaa-rriba!"); si casi no sostuvo la "a", no se guarda.
+      ownPitch: heldAaa ? typicalPitch(this.aaaFrames) : null,
     };
     this.phase = CALIBRATION_PHASE.DONE;
   }
