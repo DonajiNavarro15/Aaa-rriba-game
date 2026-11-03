@@ -21,12 +21,20 @@ export class Narrator {
     return this.current !== null || performance.now() - this.endedAt < NARRATOR.tailMs;
   }
 
+  /** true mientras la frase espera su turno para empezar (antes de sonar). */
+  get waiting() {
+    return this.current !== null && this.current.paused && this.current.currentTime === 0;
+  }
+
   static fileFor(clip) {
     return `${NARRATOR.folder}/${clip}.${NARRATOR.extension}`;
   }
 
-  /** Reproduce la frase `clip`. `onEnd` se llama al terminar, o enseguida si no hay grabación o el sonido está apagado. */
-  say(clip, onEnd = null) {
+  /**
+   * Reproduce la frase `clip`. `onEnd` se llama al terminar, o enseguida si no hay grabación o el
+   * sonido está apagado. `delayMs` espera a que la pantalla aparezca (0 si ya está a la vista).
+   */
+  say(clip, onEnd = null, { delayMs = NARRATOR.startDelayMs } = {}) {
     this.stop();
     if (!this.soundEngine.enabled) {
       onEnd?.();
@@ -45,7 +53,7 @@ export class Narrator {
     // Espera a que la pantalla termine de aparecer (animación de entrada) antes de hablar.
     setTimeout(() => {
       if (this.current === audio) audio.play().catch(() => finish(false));
-    }, NARRATOR.startDelayMs);
+    }, delayMs);
   }
 
   /** Calla sin avisar a quien la pidió (se usa al cambiar de pantalla, pausar o apagar el sonido). */

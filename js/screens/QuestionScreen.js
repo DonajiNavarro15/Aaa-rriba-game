@@ -2,6 +2,7 @@ import { VoiceScreen } from './VoiceScreen.js';
 import { balloon, gameHud, hoopArt, hoopColumn, image, questionProgress, voiceMeter } from '../ui/components.js';
 import { icons } from '../ui/icons.js';
 import { balloonPop, bump, confetti, levelBanner, pointsPopup, shake, toast } from '../ui/effects.js';
+import { ArrowKeys } from '../input/ArrowKeys.js';
 import { BalloonFlight, FLIGHT_EVENT } from '../game/BalloonFlight.js';
 import { FLIGHT, HOOPS, LEVEL_MESSAGES, ROUND } from '../config.js';
 import { MissionScreen } from './MissionScreen.js';
@@ -12,7 +13,7 @@ const FADE_MS = 900;
 const POINTS_DELAY_MS = 500;
 const TOAST_MS = 1900;
 
-/** 05/06 · Pregunta: el globo vuela con la voz y responde al cruzar un aro. */
+/** 05/06 · Pregunta: el globo vuela con la voz o las flechas y responde al cruzar un aro. */
 export class QuestionScreen extends VoiceScreen {
   get session() {
     return this.app.session;
@@ -42,14 +43,18 @@ export class QuestionScreen extends VoiceScreen {
     super.onMount();
     this.bindMuteButton();
     this.flight = new BalloonFlight();
+    this.arrows = new ArrowKeys();
+    this.listen(window, 'keydown', (event) => this.arrows.handleKey(event, true));
+    this.listen(window, 'keyup', (event) => this.arrows.handleKey(event, false));
+    this.listen(window, 'blur', () => this.arrows.clear());
     this.balloonElement = this.$('#balloon');
     this.drawBalloon();
     this.loop((deltaSeconds) => this.update(deltaSeconds));
   }
 
   update(deltaSeconds) {
-    const level = this.readVoice(deltaSeconds);
-    const event = this.flight.update(deltaSeconds, level);
+    const level = this.readVoice(deltaSeconds, { aaaOnly: true });
+    const event = this.flight.update(deltaSeconds, level, this.arrows.direction);
     this.drawBalloon();
 
     if (event === FLIGHT_EVENT.LAUNCHED) {

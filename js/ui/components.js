@@ -64,18 +64,13 @@ export function chip(text, { gold = false, small = false, icon = '', id = '' } =
   return `<span class="${classes}" ${id ? `id="${id}"` : ''}>${icon}${text}</span>`;
 }
 
-/**
- * HUD de juego: jugador a la izquierda, `center` en medio y marcador a la derecha.
- * `pausable` agrega el botón de pausa; con `points: null` no muestra el marcador (práctica).
- * `actions` son botones extra junto al de sonido (por ejemplo, "Saltar práctica").
- */
-export function gameHud({ playerName, points, center, soundOn, pausable = false, actions = '' }) {
+/** HUD de juego: jugador a la izquierda, `center` en medio y marcador a la derecha. `pausable` agrega el botón de pausa. */
+export function gameHud({ playerName, points, center, soundOn, pausable = false }) {
   return `<header class="hud">
     <div class="hud__player"><span class="hud__avatar">${icons.helmet(PLAYER_VISOR, 40)}</span><span class="hud__names"><span class="hud__name">${escapeHtml(playerName || 'Astronauta')}</span><span class="hud__role">Tripulante</span></span></div>
     ${center}
     <span class="grow"></span>
-    ${points === null ? '' : `<div class="score"><span class="score__icon">${icons.star(20, '#1E2A5E')}</span><span class="score__value" id="points">${points}</span><span class="score__label">puntos</span></div>`}
-    ${actions}
+    <div class="score"><span class="score__icon">${icons.star(20, '#1E2A5E')}</span><span class="score__value" id="points">${points}</span><span class="score__label">puntos</span></div>
     ${muteButton(soundOn)}
     ${pausable ? `<button type="button" class="icon-btn icon-btn--pause" id="pause" aria-label="Pausar el juego">${icons.pause()}</button>` : ''}
   </header>`;
@@ -157,14 +152,13 @@ export function hoopArt(state = 'ready') {
     <ellipse cx="48" cy="75" rx="24" ry="54" fill="none" stroke="#1E2A5E" stroke-width="3.5"/>${lights}</svg>`;
 }
 
-/** Los tres aros con sus placas de número. Un valor `null` deja el aro sin placa (práctica). */
+/** Los tres aros con sus placas de número. */
 export function hoopColumn(options) {
   return options
-    .map((value, i) => {
-      const hoop = `<div class="hoop" id="hoop-${i}" style="left:${HOOPS.x}px;top:${HOOPS.tops[i]}px">${hoopArt()}</div>`;
-      if (value === null) return hoop;
-      return `${hoop}<span class="answer-plate" id="plate-${i}" style="left:${HOOPS.plateX}px;top:${HOOPS.tops[i] + HOOPS.plateOffsetY}px">${value}</span>`;
-    })
+    .map(
+      (value, i) =>
+        `<div class="hoop" id="hoop-${i}" style="left:${HOOPS.x}px;top:${HOOPS.tops[i]}px">${hoopArt()}</div><span class="answer-plate" id="plate-${i}" style="left:${HOOPS.plateX}px;top:${HOOPS.tops[i] + HOOPS.plateOffsetY}px">${value}</span>`
+    )
     .join('');
 }
 
@@ -199,6 +193,3 @@ export function earth({ x, y, size } = {}) {
   return `<div class="art" style="left:${x}px;top:${y}px;width:${size}px;height:${size}px">${art}</div>`;
 }
 
-export function ruleTile(number, art, caption, detail) {
-  return `<div class="rule-tile"><span class="rule-tile__number">${number}</span>${art}<span class="rule-tile__caption">${caption}</span><span class="rule-tile__detail">${detail}</span></div>`;
-}

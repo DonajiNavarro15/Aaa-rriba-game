@@ -2,7 +2,6 @@ import { Screen } from '../core/Screen.js';
 import { button, earth, image, balloon, muteButton } from '../ui/components.js';
 import { icons } from '../ui/icons.js';
 import { NameScreen } from './NameScreen.js';
-import { VoiceTestScreen } from './VoiceTestScreen.js';
 import { TutorialScreen } from './TutorialScreen.js';
 import { CrewScreen } from './CrewScreen.js';
 
@@ -34,10 +33,11 @@ export class StartScreen extends Screen {
   onMount() {
     this.onClick('play', () => {
       this.app.sfx.launch();
-      this.app.go(this.app.session.playerName ? VoiceTestScreen : NameScreen);
+      this.app.session.forgetPlayer(); // cada despegue desde el inicio puede ser otro niño
+      this.app.go(NameScreen);
     });
     this.onClick('how', () => this.app.go(TutorialScreen));
-    this.onClick('crew', () => this.app.go(CrewScreen));
+    this.onClick('crew', () => this.app.go(CrewScreen, { highlightId: this.app.session.lastEntryId }));
     this.bindMuteButton();
   }
 }

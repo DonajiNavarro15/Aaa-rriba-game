@@ -3,7 +3,7 @@ import { button, chip, escapeHtml, image, panelHeader, topBar } from '../ui/comp
 import { icons } from '../ui/icons.js';
 import { PLAYER_VISOR } from '../config.js';
 import { StartScreen } from './StartScreen.js';
-import { HowToPlayScreen } from './HowToPlayScreen.js';
+import { TutorialScreen } from './TutorialScreen.js';
 
 const MAX_NAME_LENGTH = 12;
 const FOCUS_DELAY_MS = 300;
@@ -64,7 +64,8 @@ export class NameScreen extends Screen {
 
   submit() {
     if (!this.name) return;
+    if (this.name !== this.app.session.playerName) this.app.session.lastEntryId = null;
     this.app.session.playerName = this.name;
-    this.app.go(HowToPlayScreen);
+    this.app.go(TutorialScreen, { inGame: true });
   }
 }

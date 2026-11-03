@@ -36,7 +36,6 @@ export class BonusScreen extends VoiceScreen {
           <span class="word-card__word" id="word">${session.currentWord}</span>
         </div>
         <div class="timer"><span class="timer__clock">${icons.clock()}</span><span class="timer__track"><span class="timer__fill" id="timer-fill" style="width:calc(100% - 6px)"></span></span></div>
-        <span class="listening"><i class="listening__bar"></i><i class="listening__bar"></i><i class="listening__bar"></i>Palabra ${session.wordIndex + 1} de ${BONUS.words.length} · te escucho</span>
       </div>
       ${balloon({ id: 'bonus-balloon', ...position })}
       ${voiceMeter()}`;

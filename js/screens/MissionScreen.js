@@ -33,8 +33,9 @@ export class MissionScreen extends Screen {
           <div class="stars">${stars}</div>
           ${resultDots(session.results)}
           <p class="text text-strong" style="font-size:21px"><b>${session.correctCount} de ${session.results.length} correctas</b> · ${session.points} ${pointsWord}</p>
-          <p class="text-small" style="max-width:460px">Ahora vas a la ronda bonus: di la palabra a tiempo para llegar a los planetas. Cada palabra vale doble.</p>
-          ${button('¡A la ronda bonus!', { id: 'bonus' })}
+          <p class="text text-strong">¡Es tiempo de la ronda bonus!</p>
+          <p class="text-small" style="max-width:520px">Di la palabra en cuanto aparezca para poder llegar a los planetas ¡cada palabra vale el doble de puntos!</p>
+          ${button('¡Vamos!', { id: 'bonus' })}
         </div>
       </div>`;
   }

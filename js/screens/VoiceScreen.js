@@ -24,9 +24,14 @@ export class VoiceScreen extends Screen {
     this.app.simulatedVoice.bindButtons(this.$$('.sim-controls__btn'));
   }
 
-  /** Lee el nivel de voz y actualiza el medidor compacto si la pantalla lo tiene. */
-  readVoice(deltaSeconds) {
-    const level = this.app.voice.read(deltaSeconds);
+  /**
+   * Lee el nivel de voz y actualiza el medidor compacto si la pantalla lo tiene.
+   * Con `aaaOnly` solo cuenta el "Aaaa" (vuelo del globo); sin él, cualquier voz (palabras).
+   */
+  readVoice(deltaSeconds, { aaaOnly = false } = {}) {
+    const voice = this.app.voice;
+    voice.read(deltaSeconds);
+    const level = aaaOnly ? voice.aaaLevel : voice.level;
     this.voiceFill ??= this.$('#voice-fill');
     if (this.voiceFill) this.voiceFill.style.width = `${level}%`;
     return level;

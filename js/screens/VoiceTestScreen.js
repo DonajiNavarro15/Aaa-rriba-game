@@ -1,16 +1,18 @@
 import { VoiceScreen } from './VoiceScreen.js';
 import { button, chip, image, panelHeader, topBar } from '../ui/components.js';
 import { icons } from '../ui/icons.js';
-import { CALIBRATION, VOICE } from '../config.js';
+import { AAA, CALIBRATION, VOICE } from '../config.js';
 import { CALIBRATION_PHASE, VoiceCalibration } from '../input/VoiceCalibration.js';
-import { HowToPlayScreen } from './HowToPlayScreen.js';
-import { PracticeScreen } from './PracticeScreen.js';
+import { TutorialScreen } from './TutorialScreen.js';
+import { QuestionScreen } from './QuestionScreen.js';
 
 const POP_SHOW_MS = 1200;
 const POP_COOLDOWN_MS = 1400;
 const BALLOON_HALF_WIDTH = 20;
 const FAILED_RETRY_MS = 1800;
 const TOO_SOFT_AFTER_ATTEMPTS = 2;
+const SAMPLE_MS = 8000; // muestra para diagnosticar el "Aaaa" (tecla G)
+const NOT_AAA_AFTER_SECONDS = 0.6; // hablar más que esto sin "Aaaa" muestra el aviso
 const VOICE_LEVELS = CALIBRATION.voiceLevelNames.length;
 
 const STATUS = {
@@ -46,6 +48,7 @@ const STATUS = {
   quiet: { tone: 'quiet', icon: icons.arrowUp(), title: 'Un poco más fuerte', detail: 'Así el globo casi no sube.' },
   rise: { tone: 'rise', icon: icons.check(), title: '¡Muy bien!', detail: 'Así el globo sube.' },
   danger: { tone: 'danger', icon: icons.warning(), title: '¡Muy fuerte!', detail: 'Así el globo se revienta.' },
+  notAaa: { tone: 'quiet', icon: icons.arrowUp(), title: 'Eso no es un Aaaa', detail: 'El globo solo sube con un Aaaa largo.' },
 };
 
 /**
@@ -62,7 +65,7 @@ export class VoiceTestScreen extends VoiceScreen {
       <div class="layer">
         <div class="panel anim-enter" style="width:780px;gap:12px;padding:24px 40px 26px">
           ${panelHeader('Prueba de comunicación', { tone: 'purple', icon: icons.mic('#FFFFFF', 26) })}
-          <p class="text" style="max-width:600px">Vamos a probar tu voz. Primero, silencio. Luego, ¡a gritar!</p>
+          <p class="text" style="max-width:600px">Vamos a probar la comunicación con la base, di "Aaa-rriba"</p>
           <div class="meter" id="meter">
             <div class="meter__track">
               <span class="meter__danger"></span>
@@ -78,7 +81,7 @@ export class VoiceTestScreen extends VoiceScreen {
           <p class="text-small calib-note" id="calib-note" hidden>Tu voz se oye bajito o hay ruido cerca. Si el globo no sube o sube solo, acércate al micrófono y mide otra vez.</p>
           <div class="row" style="gap:20px">
             ${button('Medir otra vez', { id: 'remeasure', variant: 'light', size: 'small' })}
-            ${button('Ir a la práctica', { id: 'continue', size: 'small', disabled: true })}
+            ${button('¡A jugar!', { id: 'continue', size: 'small', disabled: true })}
           </div>
         </div>
       </div>`;
@@ -86,15 +89,28 @@ export class VoiceTestScreen extends VoiceScreen {
 
   onMount() {
     super.onMount();
-    this.onClick('back', () => this.app.go(HowToPlayScreen));
-    this.onClick('continue', () => this.app.go(PracticeScreen));
+    this.onClick('back', () => this.app.go(TutorialScreen, { inGame: true }));
+    this.onClick('continue', async () => {
+      this.$('#continue').disabled = true;
+      this.app.sfx.launch();
+      await this.app.session.startRound();
+      if (this.app.currentScreen === this) this.app.go(QuestionScreen);
+    });
     this.onClick('remeasure', () => this.startCalibration());
     this.bindMuteButton();
+    // Tecla D: panel para adultos con lo que mide el detector de "Aaaa" (sirve para ajustar AAA en config.js).
+    // Con el panel abierto, G guarda una muestra de lo que mide el juego en un archivo (Descargas).
+    this.listen(window, 'keydown', (event) => {
+      if (event.target.tagName === 'INPUT') return;
+      if (event.code === 'KeyD') this.diagnostics = this.diagnostics ? (this.diagnostics.remove(), null) : this.addDiagnostics();
+      if (event.code === 'KeyG' && this.diagnostics && !this.sample) this.startSample();
+    });
 
     this.$('#remeasure').hidden = true;
     this.calibration = null;
     this.result = null;
     this.lastPopAt = -Infinity;
+    this.notAaaSeconds = 0;
     this.currentStatus = null;
     this.showStatus('connecting');
     this.showMeter(false);
@@ -153,11 +169,84 @@ export class VoiceTestScreen extends VoiceScreen {
     this.currentStatus = null;
   }
 
+  addDiagnostics() {
+    const panel = document.createElement('pre');
+    panel.className = 'aaa-diagnostics';
+    this.root.appendChild(panel);
+    return panel;
+  }
+
+  /** Muestra cada regla del detector: así se ve cuál rechaza la "a" de un niño. */
+  /** Muestra de diagnóstico: el sonido del micrófono (tal como lo recibe el juego) y lo que mide el detector. */
+  startSample() {
+    const stamp = Date.now();
+    this.sample = { frames: [], startedAt: performance.now(), stamp };
+    const { stream } = this.app.voice;
+    if (!stream || !window.MediaRecorder) return;
+    const recorder = new MediaRecorder(stream);
+    const chunks = [];
+    recorder.addEventListener('dataavailable', (event) => chunks.push(event.data));
+    recorder.addEventListener('stop', () => download(new Blob(chunks, { type: recorder.mimeType }), `muestra-aaa-${stamp}.webm`));
+    recorder.start();
+    this.after(SAMPLE_MS, () => recorder.state !== 'inactive' && recorder.stop());
+    this.addCleanup(() => recorder.state !== 'inactive' && recorder.stop());
+  }
+
+  /** Guarda cuadro por cuadro lo que mide el detector durante unos segundos y lo descarga como JSON. */
+  recordSample() {
+    const { voice } = this.app;
+    const { features, detector } = voice;
+    const elapsed = performance.now() - this.sample.startedAt;
+    if (features) {
+      this.sample.frames.push({
+        ms: Math.round(elapsed),
+        decibels: round(voice.decibels),
+        ambient: round(voice.ambientDecibels),
+        floor: round(voice.floorDecibels),
+        level: round(voice.level),
+        aaaLevel: round(voice.aaaLevel),
+        pitch: round(features.pitch),
+        clarity: round(features.clarity, 2),
+        steadiness: round(features.steadiness, 3),
+        brightness: round(features.brightness, 1),
+        isAaa: features.isAaa,
+        held: round(detector.heldSeconds, 2),
+        active: detector.active,
+        ownPitch: round(detector.ownPitch),
+      });
+    }
+    if (elapsed < SAMPLE_MS) return;
+    download(new Blob([JSON.stringify({ config: AAA, frames: this.sample.frames })], { type: 'application/json' }), `muestra-aaa-${this.sample.stamp}.json`);
+    this.sample = null;
+  }
+
+  showDiagnostics() {
+    const { features, detector } = this.app.voice;
+    if (!features) return (this.diagnostics.textContent = 'Sin micrófono');
+    const mark = (ok) => (ok ? 'sí' : 'NO');
+    const ownPitch = detector.ownPitch ? `${detector.ownPitch.toFixed(0)} Hz` : 'sin medir';
+    this.diagnostics.textContent = [
+      `tono       ${features.pitch.toFixed(0)} Hz   (el del niño: ${ownPitch})`,
+      `parejo     ${features.clarity.toFixed(2)}   ${mark(features.clarity >= AAA.minClarity)}  (mín ${AAA.minClarity})`,
+      `igual      ${features.steadiness.toFixed(3)}   ${mark(features.steadiness >= AAA.minSteadiness)}  (mín ${AAA.minSteadiness})`,
+      `agudo      ${features.brightness.toFixed(1)} dB   ${mark(features.brightness >= AAA.minBrightnessDecibels && features.brightness <= AAA.maxBrightnessDecibels)}  (${AAA.minBrightnessDecibels} a ${AAA.maxBrightnessDecibels})`,
+      `¿es "a"?   ${mark(features.isAaa)}   seguida ${detector.heldSeconds.toFixed(2)} s (globo: ${AAA.onsetSeconds} s)`,
+      this.sample ? `GRABANDO MUESTRA… ${Math.ceil((SAMPLE_MS - (performance.now() - this.sample.startedAt)) / 1000)} s` : 'G = guardar muestra de 8 s',
+    ].join('\n');
+  }
+
   update(deltaSeconds, now) {
-    const level = this.app.voice.read(deltaSeconds);
+    const voice = this.app.voice;
+    const anyVoice = voice.read(deltaSeconds);
+    if (this.diagnostics) this.showDiagnostics();
+    if (this.sample) this.recordSample();
     const narrating = this.app.narrator.speaking;
     if (this.calibration && !narrating) this.updateCalibration(deltaSeconds);
-    const measuring = this.calibration !== null || !this.app.voice.isReady || narrating;
+    const measuring = this.calibration !== null || !voice.isReady || narrating;
+    // Ya medida la voz, la barra muestra lo mismo que moverá al globo: solo el "Aaaa".
+    const level = measuring || !this.result ? anyVoice : voice.aaaLevel;
+    const talkingNotAaa = anyVoice >= VOICE.riseThreshold && voice.aaaLevel < VOICE.riseThreshold;
+    this.notAaaSeconds = talkingNotAaa ? this.notAaaSeconds + deltaSeconds : 0;
 
     // Mientras mide o suena la narración, la barra solo muestra la voz: no revienta ni cambia el estado.
     const inDanger = !measuring && level >= VOICE.dangerThreshold;
@@ -177,19 +266,23 @@ export class VoiceTestScreen extends VoiceScreen {
 
     if (measuring) return;
     if (showingPop) this.showStatus('danger');
-    else if (this.result) this.showResult();
+    else if (this.result && this.notAaaSeconds >= NOT_AAA_AFTER_SECONDS) this.showStatus('notAaa');
+    else if (this.result && (level >= VOICE.riseThreshold || this.currentStatus !== 'notAaa')) this.showResult();
     else this.showStatus(level >= VOICE.riseThreshold ? 'rise' : 'quiet');
   }
 
   updateCalibration(deltaSeconds) {
     const { calibration } = this;
-    const phase = calibration.update(deltaSeconds, this.app.voice.decibels);
+    const phase = calibration.update(deltaSeconds, this.app.voice.decibels, this.app.voice.features);
     this.$('#calib-fill').style.width = `${calibration.progress * 100}%`;
     if (phase !== CALIBRATION_PHASE.SILENCE) this.showMeter(true);
 
     if (phase === CALIBRATION_PHASE.DONE) return this.finishCalibration(calibration.result);
-    // Después de varios intentos sin escucharlo, le pide acercarse al micrófono.
-    const status = phase === CALIBRATION_PHASE.FAILED && calibration.attempt >= TOO_SOFT_AFTER_ATTEMPTS ? 'tooSoft' : phase;
+    // Después de varios intentos sin escucharlo, le pide acercarse al micrófono
+    // y ya puede seguir: si el micrófono falla, jugará con las flechas.
+    const heardNothing = phase === CALIBRATION_PHASE.FAILED && calibration.attempt >= TOO_SOFT_AFTER_ATTEMPTS;
+    if (heardNothing) this.$('#continue').disabled = false;
+    const status = heardNothing ? 'tooSoft' : phase;
     if (phase === CALIBRATION_PHASE.FAILED && this.currentStatus !== status) {
       this.app.sfx.miss();
       this.after(FAILED_RETRY_MS, () => this.calibration === calibration && calibration.retrySpeaking());
@@ -197,14 +290,14 @@ export class VoiceTestScreen extends VoiceScreen {
     this.showStatus(status);
   }
 
-  /** Resultado de la medición: "Tu voz es nivel n de 5". */
+  /** Resultado de la medición: "Tu voz es suave", "media" o "fuerte". */
   showResult() {
     const { voiceLevel } = this.result;
     this.showStatus('result', {
       tone: 'rise',
       icon: icons.check(),
-      title: `¡Listo! Tu voz es nivel ${voiceLevel} de ${VOICE_LEVELS}`,
-      detail: `${CALIBRATION.voiceLevelNames[voiceLevel - 1]} · Ya conozco tu voz. Grita Aaaa y mira el globo.`,
+      title: `¡Listo! Tu voz es ${CALIBRATION.voiceLevelNames[voiceLevel - 1]}`,
+      detail: 'Di Aaa para ver qué tan fuerte debes de hablar.',
     });
   }
 
@@ -218,4 +311,15 @@ export class VoiceTestScreen extends VoiceScreen {
     this.$('#status-detail').textContent = status.detail;
     if (status.clip) this.app.narrator.say(status.clip);
   }
+}
+
+function round(value, decimals = 1) {
+  return value === null || !Number.isFinite(value) ? null : Number(value.toFixed(decimals));
+}
+
+function download(blob, name) {
+  const link = document.createElement('a');
+  link.href = URL.createObjectURL(blob);
+  link.download = name;
+  link.click();
 }

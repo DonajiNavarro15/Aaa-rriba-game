@@ -1,0 +1,25 @@
+services:
+  app:
+    build: .
+    ports:
+      - "5500:5500"
+    environment:
+      MONGODB_URI: mongodb://mongo:27017/aaa-rriba
+    depends_on:
+      mongo:
+        condition: service_healthy
+    restart: unless-stopped
+
+  mongo:
+    image: mongo:8
+    volumes:
+      - mongo-data:/data/db
+    healthcheck:
+      test: ["CMD", "mongosh", "--quiet", "--eval", "db.runCommand({ ping: 1 }).ok"]
+      interval: 5s
+      timeout: 5s
+      retries: 12
+    restart: unless-stopped
+
+volumes:
+  mongo-data:
