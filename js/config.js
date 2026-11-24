@@ -15,6 +15,7 @@ export const VOICE = Object.freeze({
   browserNoiseSuppression: true, // el navegador limpia el ruido de fondo antes de medir
   lowCutHz: 150, // filtro de voz: quita zumbidos y ruido grave (ventiladores, autos)
   highCutHz: 3500, // filtro de voz: quita siseos y ruido agudo
+  minVoiceClarity: 0.4, // cuenta como voz si vibra con tono (1 = nota perfecta); golpes, portazos o ventiladores casi no tienen
   ambientRiseDecibelsPerSecond: 0.4, // si el cuarto se vuelve ruidoso, el piso sube despacio
   ambientFallSpeed: 4, // si el cuarto se calma, el piso vuelve rápido
   attack: 14, // qué tan rápido sube la lectura
@@ -42,10 +43,10 @@ export const AAA = Object.freeze({
   minAboveNoiseDecibels: 6, // para reconocer el "Aaaa" basta con que supere el ruido del cuarto (aunque sea suave)
   softAaaLevel: 35, // un "Aaaa" reconocido, aunque sea suave, sube el globo al menos así (zona "sube" desde 22)
   // Con el tono del niño (medido en su "Aaaa" de la prueba de voz):
-  pitchSpread: 1.8, // al gritar su tono puede subir hasta esto
+  pitchSpread: 2.2, // al gritar su tono puede subir hasta esto (los niños gritando suben mucho)
   pitchDropSpread: 2.5, // su tono se mide gritando: hablando suave puede bajar hasta esto
-  pitchMinSeconds: 0.2, // "a" sostenida mínima en la prueba para guardar su tono
-  onsetSeconds: 0.25, // la "a" debe durar esto, sin cortes, antes de mover el globo (una sílaba dura menos)
+  onsetSeconds: 0.14, // la "a" debe juntar esto antes de mover el globo (una sílaba suelta dura menos)
+  onsetDecay: 2.5, // antes de arrancar, cada cuadro que no es "a" resta esto por su duración (al hablar, las consonantes)
   graceSeconds: 0.15, // ya volando, cortes breves no la interrumpen
 });
 
@@ -56,12 +57,15 @@ export const CALIBRATION = Object.freeze({
   speakMaxMs: 5000,
   // Por intento: cada vez que no se escucha, se acepta una voz más bajita y más corta.
   voicedOverNoiseDecibels: [5, 3], // cuenta como voz si supera al ruido por esto
-  voicedSecondsNeeded: [0.5, 0.4, 0.3], // voz mínima para dar la medición por buena
+  aaaSecondsNeeded: [0.3, 0.25, 0.2], // "Aaaa" sostenido mínimo para dar la medición por buena (solo cuenta la "a")
   playableMarginLevel: 8, // la voz medida debe pasar la zona "sube" por esto; si no, se pide otra vez
-  endAfterQuietSeconds: 0.5, // si ya habló suficiente, termina al callarse
+  endAfterQuietSeconds: 0.5, // termina cuando su "Aaaa" ya acabó hace esto
+  overNarrationDecibels: 6, // durante una frase grabada, su voz cuenta si supera por esto lo que se cuela de la narración
+  narrationPercentile: 0.95, // lo más fuerte que se coló de la narración (sin los picos sueltos)
+  minNarrationFrames: 20, // cuadros mínimos de narración medidos para confiar en esa medida
   noisePercentile: 0.9, // toma los ruidos más fuertes del cuarto, no el promedio
-  voicePercentile: 0.6,
   aaaPercentile: 0.5, // con su "Aaaa": su volumen típico al sostenerlo
+  aaaGapSeconds: 0.12, // un corte más largo que esto separa dos "Aaaa" distintos (otro sonido, otra persona)
   noiseMarginDecibels: 6, // el piso queda por encima del ruido del cuarto
   minVoiceSpanDecibels: 11, // espacio mínimo entre el piso y la voz (en cuartos ruidosos)
   noiseGuardDecibels: 2, // con voz bajita, el piso nunca queda por debajo del ruido + esto
@@ -88,7 +92,8 @@ export const FLIGHT = Object.freeze({
   fallSpeed: 110,
   baseRiseSpeed: 70,
   riseGainPerLevel: 2.4,
-  steering: 5,
+  steering: 5, // qué tan rápido cambia de velocidad al bajar (suave)
+  riseSteering: 10, // qué tan rápido responde cuando el niño empieza a gritar
   maxTiltDegrees: 6,
   centerOffsetY: 40, // del borde superior del globo al centro de la tela
   width: 72,

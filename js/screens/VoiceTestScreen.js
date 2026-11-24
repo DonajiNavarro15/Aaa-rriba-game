@@ -9,7 +9,6 @@ import { QuestionScreen } from './QuestionScreen.js';
 const POP_SHOW_MS = 1200;
 const POP_COOLDOWN_MS = 1400;
 const BALLOON_HALF_WIDTH = 20;
-const FAILED_RETRY_MS = 1800;
 const TOO_SOFT_AFTER_ATTEMPTS = 2;
 const SAMPLE_MS = 8000; // muestra para diagnosticar el "Aaaa" (tecla G)
 const NOT_AAA_AFTER_SECONDS = 0.6; // hablar más que esto sin "Aaaa" muestra el aviso
@@ -44,6 +43,12 @@ const STATUS = {
     title: 'Te oigo muy bajito',
     detail: 'Acércate mucho al micrófono.',
     clip: 'voz-muy-bajita',
+  },
+  speakAgain: {
+    tone: 'rise',
+    icon: icons.mic('currentColor', 24),
+    title: `Grita otra vez: ¡${CALIBRATION.word}!`,
+    detail: 'Cerca del micrófono.',
   },
   quiet: { tone: 'quiet', icon: icons.arrowUp(), title: 'Un poco más fuerte', detail: 'Así el globo casi no sube.' },
   rise: { tone: 'rise', icon: icons.check(), title: '¡Muy bien!', detail: 'Así el globo sube.' },
@@ -92,6 +97,8 @@ export class VoiceTestScreen extends VoiceScreen {
     this.onClick('back', () => this.app.go(TutorialScreen, { inGame: true }));
     this.onClick('continue', async () => {
       this.$('#continue').disabled = true;
+      // Si se fue sin terminar de medir otra vez, se queda con el tono de la medición anterior.
+      if (this.calibration && this.previousResult) this.app.voice.applyCalibration(this.previousResult);
       this.app.sfx.launch();
       await this.app.session.startRound();
       if (this.app.currentScreen === this) this.app.go(QuestionScreen);
@@ -131,7 +138,10 @@ export class VoiceTestScreen extends VoiceScreen {
 
   startCalibration() {
     this.calibration = new VoiceCalibration();
+    this.previousResult = this.result ?? this.previousResult;
     this.result = null;
+    // Al medir otra vez se acepta cualquier tono: si el anterior quedó mal, el nuevo lo corrige.
+    this.app.voice.detector?.setOwnPitch(null);
     this.showMeter(false);
     this.$('#remeasure').hidden = true;
     this.$('#continue').disabled = true;
@@ -237,15 +247,16 @@ export class VoiceTestScreen extends VoiceScreen {
 
   update(deltaSeconds, now) {
     const voice = this.app.voice;
-    const anyVoice = voice.read(deltaSeconds);
+    voice.read(deltaSeconds);
     if (this.diagnostics) this.showDiagnostics();
     if (this.sample) this.recordSample();
     const narrating = this.app.narrator.speaking;
-    if (this.calibration && !narrating) this.updateCalibration(deltaSeconds);
+    if (this.calibration) this.updateCalibration(deltaSeconds, narrating);
     const measuring = this.calibration !== null || !voice.isReady || narrating;
-    // Ya medida la voz, la barra muestra lo mismo que moverá al globo: solo el "Aaaa".
-    const level = measuring || !this.result ? anyVoice : voice.aaaLevel;
-    const talkingNotAaa = anyVoice >= VOICE.riseThreshold && voice.aaaLevel < VOICE.riseThreshold;
+    // Mientras mide, la barra solo sigue lo que suena a "a" (no ruidos ni gente platicando);
+    // ya medida, lo mismo que moverá al globo: el "Aaaa" sostenido.
+    const level = measuring || !this.result ? voice.vowelLevel : voice.aaaLevel;
+    const talkingNotAaa = voice.voicedLevel >= VOICE.riseThreshold && voice.aaaLevel < VOICE.riseThreshold;
     this.notAaaSeconds = talkingNotAaa ? this.notAaaSeconds + deltaSeconds : 0;
 
     // Mientras mide o suena la narración, la barra solo muestra la voz: no revienta ni cambia el estado.
@@ -271,23 +282,32 @@ export class VoiceTestScreen extends VoiceScreen {
     else this.showStatus(level >= VOICE.riseThreshold ? 'rise' : 'quiet');
   }
 
-  updateCalibration(deltaSeconds) {
+  updateCalibration(deltaSeconds, narrating) {
     const { calibration } = this;
-    const phase = calibration.update(deltaSeconds, this.app.voice.decibels, this.app.voice.features);
+    const phase = calibration.update(deltaSeconds, this.app.voice.decibels, this.app.voice.features, narrating);
     this.$('#calib-fill').style.width = `${calibration.progress * 100}%`;
     if (phase !== CALIBRATION_PHASE.SILENCE) this.showMeter(true);
 
     if (phase === CALIBRATION_PHASE.DONE) return this.finishCalibration(calibration.result);
-    // Después de varios intentos sin escucharlo, le pide acercarse al micrófono
-    // y ya puede seguir: si el micrófono falla, jugará con las flechas.
-    const heardNothing = phase === CALIBRATION_PHASE.FAILED && calibration.attempt >= TOO_SOFT_AFTER_ATTEMPTS;
-    if (heardNothing) this.$('#continue').disabled = false;
-    const status = heardNothing ? 'tooSoft' : phase;
-    if (phase === CALIBRATION_PHASE.FAILED && this.currentStatus !== status) {
+    if (phase === CALIBRATION_PHASE.FAILED) {
+      // Después de varios intentos sin escucharlo, le pide acercarse al micrófono
+      // y ya puede seguir: si el micrófono falla, jugará con las flechas.
+      const heardNothing = calibration.attempt >= TOO_SOFT_AFTER_ATTEMPTS;
+      if (heardNothing) this.$('#continue').disabled = false;
       this.app.sfx.miss();
-      this.after(FAILED_RETRY_MS, () => this.calibration === calibration && calibration.retrySpeaking());
+      this.showStatus(heardNothing ? 'tooSoft' : 'failed');
+      // Escucha desde ya: la frase de "No te oí" termina pidiéndole gritar otra vez.
+      calibration.retrySpeaking();
+      return;
     }
-    this.showStatus(status);
+    // Al reintentar no se repite "grita: ¡Aaaa-rriba!" (ya lo pidió la frase del fallo,
+    // y volver a sonar la cortaría): cuando termina, solo cambia el letrero.
+    const retrying = ['failed', 'tooSoft', 'speakAgain'].includes(this.currentStatus);
+    if (phase === CALIBRATION_PHASE.SPEAK && retrying) {
+      if (!narrating) this.showStatus('speakAgain');
+      return;
+    }
+    this.showStatus(phase);
   }
 
   /** Resultado de la medición: "Tu voz es suave", "media" o "fuerte". */

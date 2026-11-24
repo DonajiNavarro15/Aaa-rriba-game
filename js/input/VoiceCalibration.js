@@ -1,4 +1,4 @@
-import { AAA, CALIBRATION, VOICE } from '../config.js';
+import { CALIBRATION, VOICE } from '../config.js';
 import { typicalPitch } from './AaaDetector.js';
 
 /** Fase de la medición de voz. */
@@ -17,6 +17,7 @@ export const CALIBRATION_PHASE = Object.freeze({
 export class VoiceCalibration {
   constructor() {
     this.noiseDecibels = null;
+    this.narrationSamples = []; // lo que se cuela de la narración al micrófono mientras el niño calla
     this.attempt = 0;
     this.result = null;
     this.startPhase(CALIBRATION_PHASE.SILENCE);
@@ -25,15 +26,11 @@ export class VoiceCalibration {
   startPhase(phase) {
     this.phase = phase;
     this.elapsedMs = 0;
-    this.samples = [];
-    this.voicedSeconds = 0;
-    this.quietSeconds = 0;
-    this.aaaFrames = []; // cuadros de su "Aaaa", para guardar su tono
-    this.aaaDecibels = []; // volumen de su "Aaaa": la barra se mide con él, no con toda la palabra
-    this.aaaSeconds = 0;
+    this.samples = []; // decibeles del silencio del cuarto
+    this.aaaSegments = []; // cada "Aaaa" sostenido, sin cortes: { frames, decibels, seconds, gapSeconds }
   }
 
-  /** Vuelve a pedir la palabra sin volver a medir el silencio, aceptando una voz más bajita. */
+  /** Vuelve a pedir la palabra sin volver a medir el silencio, aceptando una voz más bajita y una "a" más corta. */
   retrySpeaking() {
     this.attempt += 1;
     this.startPhase(CALIBRATION_PHASE.SPEAK);
@@ -44,23 +41,57 @@ export class VoiceCalibration {
     return byAttempt(CALIBRATION.voicedOverNoiseDecibels, this.attempt);
   }
 
-  get voicedSecondsNeeded() {
-    return byAttempt(CALIBRATION.voicedSecondsNeeded, this.attempt);
+  get aaaSecondsNeeded() {
+    return byAttempt(CALIBRATION.aaaSecondsNeeded, this.attempt);
+  }
+
+  /** Lo más largo que ha sostenido un "Aaaa" en este intento. */
+  get longestAaaSeconds() {
+    return Math.max(0, ...this.aaaSegments.map((segment) => segment.seconds));
   }
 
   /** Avance de la fase actual, de 0 a 1. */
   get progress() {
     if (this.phase === CALIBRATION_PHASE.SILENCE) return Math.min(1, this.elapsedMs / CALIBRATION.silenceMs);
-    if (this.phase === CALIBRATION_PHASE.SPEAK) return Math.min(1, this.voicedSeconds / this.voicedSecondsNeeded);
+    if (this.phase === CALIBRATION_PHASE.SPEAK) return Math.min(1, this.longestAaaSeconds / this.aaaSecondsNeeded);
     return 1;
   }
 
-  /** `features` son los rasgos del cuadro (AaaDetector), o null sin micrófono. @returns {string} la fase después de este cuadro */
-  update(deltaSeconds, decibels, features = null) {
+  /**
+   * `features` son los rasgos del cuadro (AaaDetector), o null sin micrófono. `narrating` dice si
+   * suena una frase grabada: el tiempo de la fase no corre mientras habla.
+   * @returns {string} la fase después de este cuadro
+   */
+  update(deltaSeconds, decibels, features = null, narrating = false) {
+    if (narrating) {
+      this.listenDuringNarration(deltaSeconds, decibels, features);
+      return this.phase;
+    }
     this.elapsedMs += deltaSeconds * 1000;
     if (this.phase === CALIBRATION_PHASE.SILENCE) this.listenToSilence(decibels);
     else if (this.phase === CALIBRATION_PHASE.SPEAK) this.listenToVoice(deltaSeconds, decibels, features);
     return this.phase;
+  }
+
+  /**
+   * La narración termina pidiendo "¡Aaaa-rriba!" y el niño suele gritar junto con ella.
+   * Mientras suena el "Shhh" (él calla) se mide cuánto se cuela la narración al micrófono;
+   * después, durante una frase, lo que suene claramente más fuerte que eso es su voz y cuenta.
+   */
+  listenDuringNarration(deltaSeconds, decibels, features) {
+    if (this.phase === CALIBRATION_PHASE.SILENCE) {
+      this.narrationSamples.push(decibels);
+      return;
+    }
+    const leak = this.narrationLeakDecibels;
+    if (this.phase !== CALIBRATION_PHASE.SPEAK || leak === null) return;
+    if (decibels >= leak + CALIBRATION.overNarrationDecibels) this.listenToVoice(deltaSeconds, decibels, features);
+  }
+
+  /** Volumen con que se oye la narración en el micrófono, o null si no se alcanzó a medir. */
+  get narrationLeakDecibels() {
+    if (this.narrationSamples.length < CALIBRATION.minNarrationFrames) return null;
+    return percentile(this.narrationSamples, CALIBRATION.narrationPercentile);
   }
 
   listenToSilence(decibels) {
@@ -70,26 +101,56 @@ export class VoiceCalibration {
     this.startPhase(CALIBRATION_PHASE.SPEAK);
   }
 
+  /**
+   * Solo cuenta el "Aaaa": un sonido parejo, con tono y boca abierta, más fuerte que el ruido.
+   * Golpes, ruidos y gente platicando cerca no cambian la medición ni la dan por terminada.
+   * Termina cuando el niño sostuvo su "Aaaa" y la "a" ya acabó (la "rriba" no cuenta).
+   */
   listenToVoice(deltaSeconds, decibels, features) {
-    if (decibels >= this.noiseDecibels + this.voicedOverNoise) {
-      this.samples.push(decibels);
-      this.voicedSeconds += deltaSeconds;
-      this.quietSeconds = 0;
-      if (features?.isAaa) {
-        this.aaaFrames.push(features);
-        this.aaaDecibels.push(decibels);
-        this.aaaSeconds += deltaSeconds;
-      }
-    } else {
-      this.quietSeconds += deltaSeconds;
-    }
+    const loudEnough = decibels >= this.noiseDecibels + this.voicedOverNoise;
+    this.trackAaa(deltaSeconds, decibels, loudEnough && features?.isAaa ? features : null);
 
-    const enoughVoice = this.voicedSeconds >= this.voicedSecondsNeeded;
-    if (enoughVoice && this.quietSeconds >= CALIBRATION.endAfterQuietSeconds) return this.finish();
+    const heldAaa = this.childAaa !== null;
+    const aaaEnded = this.aaaSegments.at(-1)?.gapSeconds >= CALIBRATION.endAfterQuietSeconds;
+    if (heldAaa && aaaEnded) return this.finish();
     if (this.elapsedMs >= CALIBRATION.speakMaxMs) {
-      if (enoughVoice) this.finish();
+      if (heldAaa) this.finish();
       else this.phase = CALIBRATION_PHASE.FAILED;
     }
+  }
+
+  /**
+   * Separa cada "Aaaa" sostenido: un corte más largo que `aaaGapSeconds` empieza otro. Así el
+   * "Aaaa" del niño no se mezcla con una nota de otra persona o de la tele que suene antes o después.
+   */
+  trackAaa(deltaSeconds, decibels, aaaFeatures) {
+    let segment = this.aaaSegments.at(-1);
+    if (!aaaFeatures) {
+      if (segment) segment.gapSeconds += deltaSeconds;
+      return;
+    }
+    if (!segment || segment.gapSeconds > CALIBRATION.aaaGapSeconds) {
+      segment = { frames: [], decibels: [], seconds: 0, gapSeconds: 0 };
+      this.aaaSegments.push(segment);
+    }
+    segment.frames.push(aaaFeatures);
+    segment.decibels.push(decibels);
+    segment.seconds += deltaSeconds;
+    segment.gapSeconds = 0;
+  }
+
+  /**
+   * El "Aaaa" del niño: de los que duraron lo suficiente, el más fuerte (él está pegado al
+   * micrófono; los demás sonidos llegan de más lejos). null si no sostuvo ninguno.
+   */
+  get childAaa() {
+    let best = null;
+    for (const segment of this.aaaSegments) {
+      if (segment.seconds < this.aaaSecondsNeeded) continue;
+      segment.typicalDecibels = percentile(segment.decibels, CALIBRATION.aaaPercentile);
+      if (!best || segment.typicalDecibels > best.typicalDecibels) best = segment;
+    }
+    return best;
   }
 
   /**
@@ -101,10 +162,8 @@ export class VoiceCalibration {
    * ("rriba" y el final que se apaga) suena más bajito, y con ella un "Aaaa" largo reventaría el globo.
    */
   finish() {
-    const heldAaa = this.aaaSeconds >= AAA.pitchMinSeconds;
-    const voiceDecibels = heldAaa
-      ? percentile(this.aaaDecibels, CALIBRATION.aaaPercentile)
-      : percentile(this.samples, CALIBRATION.voicePercentile);
+    const aaa = this.childAaa;
+    const voiceDecibels = aaa.typicalDecibels;
     const fullRange =
       (CALIBRATION.riseBelowVoiceDecibels + CALIBRATION.dangerAboveVoiceDecibels) /
       ((VOICE.dangerThreshold - VOICE.riseThreshold) / 100);
@@ -132,8 +191,7 @@ export class VoiceCalibration {
       decibelRange,
       noiseDecibels: this.noiseDecibels,
       noisy: voiceDecibels - this.noiseDecibels < CALIBRATION.noisyRoomSpanDecibels,
-      // Tono de su "Aaaa" (de "¡Aaaa-rriba!"); si casi no sostuvo la "a", no se guarda.
-      ownPitch: heldAaa ? typicalPitch(this.aaaFrames) : null,
+      ownPitch: typicalPitch(aaa.frames), // tono de su "Aaaa" (de "¡Aaaa-rriba!")
     };
     this.phase = CALIBRATION_PHASE.DONE;
   }

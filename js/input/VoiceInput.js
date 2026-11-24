@@ -1,6 +1,6 @@
 import { AAA, VOICE } from '../config.js';
 import { SHOUT } from './SimulatedVoice.js';
-import { AaaDetector } from './AaaDetector.js';
+import { AaaDetector, isVoiced } from './AaaDetector.js';
 
 const FFT_SIZE = 2048; // ventana de ~43 ms: alcanza para medir el tono de la voz
 const WOBBLE_MS = 180;
@@ -27,7 +27,9 @@ export class VoiceInput {
     this.ambientDecibels = null; // ruido del cuarto; null hasta medir la voz
     this.ambientMarginDecibels = 0; // distancia entre el ruido y el piso de la barra
     this.decibels = -Infinity; // lectura cruda del último cuadro
-    this.level = 0; // cualquier voz
+    this.level = 0; // cualquier sonido
+    this.voicedLevel = 0; // solo sonidos con tono (voz): ignora golpes y ruidos
+    this.vowelLevel = 0; // solo cuadros que suenan a "a", sin esperar a que se sostenga (barra de la prueba de voz)
     this.aaaLevel = 0; // solo el "Aaaa"
     this.detector = null;
     this.stream = null; // el micrófono, para grabar muestras de diagnóstico
@@ -80,7 +82,8 @@ export class VoiceInput {
 
   /**
    * Niveles suavizados: suben rápido y bajan despacio para que el globo no tiemble.
-   * Devuelve `level` (cualquier voz) y deja en `aaaLevel` el que solo cuenta el "Aaaa".
+   * Devuelve `level` (cualquier sonido) y deja en `voicedLevel` el que solo cuenta la voz y en
+   * `aaaLevel` el que solo cuenta el "Aaaa".
    */
   read(deltaSeconds) {
     const microphone = this.microphoneLevel(deltaSeconds);
@@ -89,7 +92,11 @@ export class VoiceInput {
     // globo aunque no llegue a la zona "sube" de la barra. Más fuerte, sube más rápido.
     const aboveNoise = this.ambientDecibels === null ? microphone > 0 : this.decibels >= this.ambientDecibels + AAA.minAboveNoiseDecibels;
     const aaa = this.detector?.update(deltaSeconds, this.features, aboveNoise) ? Math.max(microphone, AAA.softAaaLevel) : 0;
+    const voiced = this.features && isVoiced(this.features) ? microphone : 0;
+    const vowel = this.features?.isAaa ? microphone : 0;
     this.level = smooth(this.level, Math.max(microphone, simulated), deltaSeconds);
+    this.voicedLevel = smooth(this.voicedLevel, Math.max(voiced, simulated), deltaSeconds);
+    this.vowelLevel = smooth(this.vowelLevel, Math.max(vowel, simulated), deltaSeconds);
     this.aaaLevel = smooth(this.aaaLevel, Math.max(aaa, simulated), deltaSeconds);
     return this.level;
   }
