@@ -1,4 +1,4 @@
-import { AAA } from '../config.js';
+import { AAA, VOICE } from '../config.js';
 
 const DECIMATION = 2; // la vibración de la voz se mide con la mitad de muestras: alcanza y es más rápido
 const OCTAVE_TOLERANCE = 0.9;
@@ -80,9 +80,12 @@ export class AaaDetector {
   }
 
   /**
-   * Cuadro a cuadro: la "a" cuenta después de `onsetSeconds` seguidos, sin cortes (así varias
-   * sílabas, como en "acamaya", no suman). Ya activa, huecos más cortos que `graceSeconds`
-   * no la apagan. `voiced` dice si el sonido supera el ruido del cuarto.
+   * Cuadro a cuadro: la "a" cuenta después de juntar `onsetSeconds`. Un cuadro suelto que no
+   * parece "a" (al gritar el tono y el volumen cambian un poco) no borra lo juntado, solo le
+   * resta `onsetDecay` veces su duración: así un grito real arranca rápido, pero al hablar las
+   * consonantes restan más de lo que suman las vocales y varias sílabas ("acamaya") no alcanzan.
+   * Ya activa, huecos más cortos que `graceSeconds` no la apagan. `voiced` dice si el sonido
+   * supera el ruido del cuarto.
    */
   update(deltaSeconds, features, voiced) {
     if (voiced && features.isAaa) {
@@ -90,13 +93,17 @@ export class AaaDetector {
       this.gapSeconds = 0;
     } else {
       this.gapSeconds += deltaSeconds;
-      if (this.gapSeconds > this.allowedGap) this.heldSeconds = 0;
+      if (this.active) {
+        if (this.gapSeconds > AAA.graceSeconds) this.heldSeconds = 0;
+      } else {
+        this.heldSeconds = Math.max(0, this.heldSeconds - deltaSeconds * AAA.onsetDecay);
+      }
     }
     this.active = this.heldSeconds >= AAA.onsetSeconds && this.gapSeconds <= this.allowedGap;
     return this.active;
   }
 
-  /** Hueco que se perdona: ninguno al empezar (para no juntar sílabas) y uno muy breve ya volando. */
+  /** Hueco que se perdona: ninguno al empezar y uno muy breve ya volando. */
   get allowedGap() {
     return this.active ? AAA.graceSeconds : 0;
   }
@@ -133,6 +140,11 @@ export class AaaDetector {
     return { pitch: 0, clarity: Math.max(0, best) };
   }
 
+}
+
+/** ¿El cuadro suena a voz (tiene tono)? Golpes, portazos, aplausos o ventiladores no vibran como una nota. */
+export function isVoiced(features) {
+  return features.pitch > 0 && features.clarity >= VOICE.minVoiceClarity;
 }
 
 /** Tono típico (mediana) de varios cuadros de "a". */

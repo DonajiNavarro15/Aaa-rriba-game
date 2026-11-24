@@ -56,8 +56,14 @@ export class BalloonFlight {
 
   steer(deltaSeconds, voiceLevel, arrowY) {
     const targetSpeed = arrowY !== 0 ? arrowY * FLIGHT.arrowSpeed : this.voiceSpeed(voiceLevel);
-    this.verticalSpeed += (targetSpeed - this.verticalSpeed) * Math.min(1, FLIGHT.steering * deltaSeconds);
+    // Al subir responde rápido (el niño ve que su grito funciona); al bajar, suave.
+    const steering = targetSpeed < this.verticalSpeed ? FLIGHT.riseSteering : FLIGHT.steering;
+    this.verticalSpeed += (targetSpeed - this.verticalSpeed) * Math.min(1, steering * deltaSeconds);
     this.y = Math.max(FLIGHT.ceilingY, Math.min(FLIGHT.groundY, this.y + this.verticalSpeed * deltaSeconds));
+    // En el suelo (o en el techo) no se sigue acumulando velocidad: si no, al gritar primero
+    // tendría que frenar la caída antes de empezar a subir y tardaría en despegar.
+    if (this.y >= FLIGHT.groundY) this.verticalSpeed = Math.min(0, this.verticalSpeed);
+    if (this.y <= FLIGHT.ceilingY) this.verticalSpeed = Math.max(0, this.verticalSpeed);
   }
 
   voiceSpeed(voiceLevel) {
